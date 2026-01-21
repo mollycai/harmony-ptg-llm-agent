@@ -1,0 +1,80 @@
+{
+  "pages/SplashPage": [],
+  "pages/MainPage": [
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    },
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/topicDetail/TopicDetailPage"
+    },
+    {
+      "component": {
+        "type": "GridItem"
+      },
+      "event": "onClick",
+      "target": "pages/categoryDetail/CategoryDetailPage"
+    }
+  ],
+  "pages/container/ContainerPage": [
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/topicDetail/TopicDetailPage"
+    },
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    },
+    {
+      "component": {
+        "type": "GridItem"
+      },
+      "event": "onClick",
+      "target": "pages/categoryDetail/CategoryDetailPage"
+    }
+  ],
+  "pages/commonDetail/DetailPage": [],
+  "pages/topicDetail/TopicDetailPage": [],
+  "pages/categoryDetail/CategoryDetailPage": [
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    }
+  ],
+  "pages/test/TestPage": [],
+  "pages/hot/CoordinatePage": [
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    }
+  ],
+  "pages/test/TestHorizontalPage": [],
+  "pages/test/TestHorizontalPage2": [],
+  "pages/mine/MinePage": []
+}

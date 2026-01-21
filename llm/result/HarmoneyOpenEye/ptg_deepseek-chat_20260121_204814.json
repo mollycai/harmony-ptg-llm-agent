@@ -1,0 +1,88 @@
+{
+  "pages/SplashPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "aboutToAppear",
+      "target": "pages/MainPage"
+    }
+  ],
+  "pages/MainPage": [],
+  "pages/container/ContainerPage": [],
+  "pages/commonDetail/DetailPage": [],
+  "pages/topicDetail/TopicDetailPage": [],
+  "pages/categoryDetail/CategoryDetailPage": [
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    }
+  ],
+  "pages/test/TestPage": [],
+  "pages/hot/CoordinatePage": [],
+  "pages/test/TestHorizontalPage": [],
+  "pages/test/TestHorizontalPage2": [],
+  "pages/mine/MinePage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/container/ContainerPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/container/ContainerPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/container/ContainerPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/test/TestPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/hot/CoordinatePage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/test/TestHorizontalPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/test/TestHorizontalPage2"
+    }
+  ],
+  "pages/home/HomePage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    }
+  ]
+}

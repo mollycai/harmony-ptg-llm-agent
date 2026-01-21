@@ -1,0 +1,75 @@
+{
+  "pages/LaunchPage": [],
+  "pages/UserPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/UpdatePasswordPage"
+    }
+  ],
+  "pages/LoginPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/RegisterPage"
+    },
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/ForgetPasswordPage"
+    }
+  ],
+  "pages/RegisterPage": [],
+  "pages/ForgetPasswordPage": [],
+  "pages/ResetPasswordPage": [],
+  "pages/UpdatePasswordPage": [],
+  "pages/IndexPage": [
+    {
+      "component": {
+        "type": "Image"
+      },
+      "event": "onClick",
+      "target": "pages/MovieUserPage"
+    },
+    {
+      "component": {
+        "type": "Column"
+      },
+      "event": "onClick",
+      "target": "pages/MovieDetailPage"
+    },
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/MovieSearchPage"
+    }
+  ],
+  "pages/MovieDetailPage": [
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/MoviePlayPage"
+    }
+  ],
+  "pages/MoviePlayPage": [],
+  "pages/MovieUserPage": [],
+  "pages/MovieSearchPage": [
+    {
+      "component": {
+        "type": "Column"
+      },
+      "event": "onClick",
+      "target": "pages/MovieDetailPage"
+    }
+  ]
+}

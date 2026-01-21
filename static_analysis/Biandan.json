@@ -1,0 +1,67 @@
+{
+  "pages/Index": [
+    {
+      "component": {
+        "type": "Stack"
+      },
+      "event": "onClick",
+      "target": "pages/help"
+    },
+    {
+      "component": {
+        "type": "Stack"
+      },
+      "event": "onClick",
+      "target": "pages/illustrate"
+    },
+    {
+      "component": {
+        "type": "Stack"
+      },
+      "event": "onClick",
+      "target": "pages/about"
+    },
+    {
+      "component": {
+        "type": "Stack"
+      },
+      "event": "onClick",
+      "target": "pages/setting"
+    }
+  ],
+  "pages/about": [
+    {
+      "component": {
+        "type": "Column"
+      },
+      "event": "onClick",
+      "target": "pages/guide"
+    },
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/illustrate"
+    }
+  ],
+  "pages/guide": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/illustrate"
+    },
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/Index"
+    }
+  ],
+  "pages/help": [],
+  "pages/illustrate": [],
+  "pages/setting": []
+}

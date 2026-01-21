@@ -1,0 +1,39 @@
+{
+  "pages/SplashPage": [],
+  "pages/MainPage": [
+		{
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/OrderDetailListPage"
+    },
+		{
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/ConfirmOrderPage"
+    }
+	],
+  "pages/CommodityDetailPage": [],
+  "pages/ConfirmOrderPage": [
+		{
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/PayOrderPage"
+    }
+	],
+  "pages/PayOrderPage": [],
+  "pages/OrderDetailListPage": [
+		{
+      "component": {
+        "type": "Flex"
+      },
+      "event": "onClick",
+      "target": "pages/PayOrderPage"
+    }
+	]
+}

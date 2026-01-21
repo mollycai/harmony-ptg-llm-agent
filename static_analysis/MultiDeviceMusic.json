@@ -1,0 +1,38 @@
+{
+  "pages/Index": [],
+  "pages/Live": [],
+  "pages/MusicComment": [
+    {
+      "component": {
+        "type": "Image"
+      },
+      "event": "onClick",
+      "target": "pages/PlayPage"
+    }
+  ],
+  "pages/MusicList": [
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/PlayPage"
+    },
+    {
+      "component": {
+        "type": "Blank"
+      },
+      "event": "onClick",
+      "target": "pages/PlayPage"
+    }
+  ],
+  "pages/PlayPage": [
+    {
+      "component": {
+        "type": "Image"
+      },
+      "event": "onClick",
+      "target": "pages/PlayPage"
+    }
+  ]
+}
