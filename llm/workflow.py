@@ -9,7 +9,8 @@ if str(_REPO_ROOT) not in sys.path:
 from dotenv import load_dotenv
 
 from config import get_llm_config, get_project_config
-from llm.utils import build_chat_model, run_long_prompt_conversation
+from llm.llm_server import build_chat_model
+from llm.utils import run_long_prompt_conversation
 
 # 解析命令行参数，获取LLM提供程序和项目键
 def _parse_args(argv: list[str]) -> tuple[str, str]:

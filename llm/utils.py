@@ -1,37 +1,13 @@
 import json
-import os
 import re
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Optional
 
-from langchain_openai import ChatOpenAI
-
 from llm.prompt.prompt import GLOBAL_PROMPT, RESTRICTIVE_PROMPT, TASK_PROMPT
 from llm.prompt.preprocess_prompt import get_preprocess_prompt
 
-# 归一化base_url，确保以/v1结尾
-def _normalize_base_url(base_url: str) -> str:
-    u = (base_url or "").strip().rstrip("/")
-    if not u:
-        return u
-    lower = u.lower()
-    if "/api/" in lower or "/api/v" in lower or re.search(r"/v\d+$", lower):
-        return u
-    return u + "/v1"
-
-# 构建ChatOpenAI模型
-def build_chat_model(config: dict, model_name: str) -> ChatOpenAI:
-    api_key = os.environ.get(config["apiKeyEnv"])
-    if not api_key:
-        raise RuntimeError(f"Missing env {config['apiKeyEnv']}")
-    return ChatOpenAI(
-        api_key=api_key,
-        model=model_name,
-        temperature=0,
-        base_url=_normalize_base_url(config.get("baseURL", "")),
-    )
 
 # 从文本中提取JSON代码块
 def _strip_json_code_fence(text: str) -> str:
@@ -42,6 +18,7 @@ def _strip_json_code_fence(text: str) -> str:
     t = re.sub(r"\n?```\s*$", "", t, flags=re.IGNORECASE)
     return t.strip()
 
+
 # 从main_pages.json中提取所有页面名称
 def extract_page_names_from_main_pages(main_pages_file_path: str) -> str:
     p = Path(main_pages_file_path)
@@ -50,6 +27,7 @@ def extract_page_names_from_main_pages(main_pages_file_path: str) -> str:
     if not isinstance(src, list):
         raise ValueError("main_pages.json格式不正确，缺少src数组")
     return ", ".join([str(x) for x in src])
+
 
 # 安全处理目录名，替换无效字符
 def _safe_dir(name: str, fallback: str = "default") -> str:
@@ -60,6 +38,7 @@ def _safe_dir(name: str, fallback: str = "default") -> str:
         s = "_" + s
     return s
 
+
 # 写入完整提示到文件
 def write_full_prompt_to_file(full_prompt: str, *, project_name: str, model: str) -> str:
     base = Path(__file__).resolve().parent / "prompt" / _safe_dir(project_name)
@@ -67,6 +46,7 @@ def write_full_prompt_to_file(full_prompt: str, *, project_name: str, model: str
     out = base / f"full_prompt_{model}.txt"
     out.write_text(full_prompt, encoding="utf-8")
     return str(out)
+
 
 # 写入PTG结果到文件
 def write_ptg_result_to_file(raw_text: str, *, project_name: str, model_name: str) -> dict[str, str]:
@@ -93,6 +73,7 @@ def _is_target_ets(relative_path: str) -> bool:
     rp = (relative_path or "").replace("\\", "/")
     return rp.endswith(".ets") and any(t in rp for t in targets)
 
+
 # 递归扫描HarmonyOS项目目录，异步处理ETS文件
 async def scan_harmonyos_project(
     project_path: str,
@@ -116,6 +97,7 @@ async def scan_harmonyos_project(
         return out
 
     return await walk(base, "")
+
 
 # 异步预处理提示，使用LLM对ETS代码进行格式化预处理
 async def preprocess_prompt(llm: ChatOpenAI, code: str, model: str) -> str:
@@ -141,6 +123,7 @@ async def preprocess_prompt(llm: ChatOpenAI, code: str, model: str) -> str:
         print(f"Error in preprocessPrompt: {error}")
         return f"// [PREPROCESS ERROR] {error}"
 
+
 # 递归展平上下文，将嵌套字典转换为路径-代码对列表
 def _flatten_context(node: Any, prefix: str = "") -> list[dict[str, str]]:
     out: list[dict[str, str]] = []
@@ -154,6 +137,7 @@ def _flatten_context(node: Any, prefix: str = "") -> list[dict[str, str]]:
             child_prefix = f"{prefix}/{k}" if prefix else str(k)
             out.extend(_flatten_context(child, child_prefix))
     return out
+
 
 # 上下文分块，将文件列表按字符数分块（注意按文件边界chunk）
 def _chunk_context(files: list[dict[str, str]], max_chars: int) -> list[str]:
@@ -172,6 +156,7 @@ def _chunk_context(files: list[dict[str, str]], max_chars: int) -> list[str]:
     if cur:
         chunks.append(cur)
     return [json.dumps(c, ensure_ascii=False) for c in chunks]
+
 
 # 异步运行长提示对话
 async def run_long_prompt_conversation(options: dict) -> dict[str, Any]:
