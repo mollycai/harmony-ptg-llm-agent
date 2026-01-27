@@ -1,0 +1,93 @@
+{
+  "pages/MainPage": [
+    {
+      "component": {
+        "type": "GridItem"
+      },
+      "event": "onClick",
+      "target": "pages/categoryDetail/CategoryDetailPage"
+    },
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    },
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/topicDetail/TopicDetailPage"
+    },
+    {
+      "component": {
+        "type": "HomeListItemComponent"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/container/ContainerPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/test/TestPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/hot/CoordinatePage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/test/TestHorizontalPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/test/TestHorizontalPage2"
+    }
+  ],
+  "pages/SplashPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/MainPage"
+    }
+  ],
+  "pages/categoryDetail/CategoryDetailPage": [
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/commonDetail/DetailPage"
+    }
+  ],
+  "pages/commonDetail/DetailPage": [],
+  "pages/container/ContainerPage": [],
+  "pages/hot/CoordinatePage": [],
+  "pages/mine/MinePage": [],
+  "pages/test/TestHorizontalPage": [],
+  "pages/test/TestHorizontalPage2": [],
+  "pages/test/TestPage": [],
+  "pages/topicDetail/TopicDetailPage": []
+}
