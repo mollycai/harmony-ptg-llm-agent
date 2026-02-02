@@ -22,33 +22,33 @@ LLM_CONFIG = {
 PROJECT_CONFIG = {
     "HarmoneyOpenEye": {
         "projectName": "HarmoneyOpenEye",
-        "projectPath": "E:/HarmonyOS/project/HarmoneyOpenEye/entry",
-        "projectMainPagePath": "E:/HarmonyOS/project/HarmoneyOpenEye/entry/src/main/resources/base/profile/main_pages.json",
+        "projectPath": "/Users/edwincai/MUST/projects/HarmoneyOpenEye/entry",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/HarmoneyOpenEye/entry/src/main/resources/base/profile/main_pages.json",
     },
     "HarmonyMovieMusic": {
         "projectName": "Harmony-arkts-movie-music-app-ui",
-        "projectPath": "E:/HarmonyOS/project/Harmony-arkts-movie-music-app-ui/entry",
-        "projectMainPagePath": "E:/HarmonyOS/project/Harmony-arkts-movie-music-app-ui/entry/src/main/resources/base/profile/main_pages.json",
+        "projectPath": "/Users/edwincai/MUST/projects/Harmony-arkts-movie-music-app-ui/entry",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/Harmony-arkts-movie-music-app-ui/entry/src/main/resources/base/profile/main_pages.json",
     },
     "ArkTSWPHUI": {
         "projectName": "ArkTS-wphui1.0",
-        "projectPath": "E:/HarmonyOS/project/ArkTS-wphui1.0/entry",
-        "projectMainPagePath": "E:/HarmonyOS/project/ArkTS-wphui1.0/entry/src/main/resources/base/profile/main_pages.json",
+        "projectPath": "/Users/edwincai/MUST/projects/ArkTS-wphui1.0/entry",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/ArkTS-wphui1.0/entry/src/main/resources/base/profile/main_pages.json",
     },
     "MultiDeviceMusic": {
         "projectName": "MultiDeviceMusic",
-        "projectPath": "E:/HarmonyOS/project/codelabs/MultiDeviceMusic/entry",
-        "projectMainPagePath": "E:/HarmonyOS/project/codelabs/MultiDeviceMusic/entry/src/main/resources/base/profile/main_pages.json",
+        "projectPath": "/Users/edwincai/MUST/projects/codelabs/MultiDeviceMusic/entry",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/codelabs/MultiDeviceMusic/entry/src/main/resources/base/profile/main_pages.json",
     },
     "Biandan": {
         "projectName": "Biandan",
-        "projectPath": "E:/HarmonyOS/project/biandan-satge/entry",
-        "projectMainPagePath": "E:/HarmonyOS/project/biandan-satge/entry/src/main/resources/base/profile/main_pages.json",
+        "projectPath": "/Users/edwincai/MUST/projects/biandan-satge/entry",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/biandan-satge/entry/src/main/resources/base/profile/main_pages.json",
     },
     "MultiShopping": {
         "projectName": "MultiShopping",
-        "projectPath": "E:/HarmonyOS/project/codelabs/MultiShopping/product/phone",
-        "projectMainPagePath": "E:/HarmonyOS/project/codelabs/MultiShopping/product/phone/src/main/resources/base/profile/main_pages.json",
+        "projectPath": "/Users/edwincai/MUST/projects/codelabs/MultiShopping/product/phone",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/codelabs/MultiShopping/product/phone/src/main/resources/base/profile/main_pages.json",
     },
 }
 

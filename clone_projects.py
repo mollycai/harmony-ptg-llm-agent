@@ -12,7 +12,6 @@ REPOS = [
 ]
 
 def run(cmd: list[str], cwd: Path | None = None) -> None:
-    print(" ".join(cmd))
     subprocess.check_call(cmd, cwd=str(cwd) if cwd else None)
 
 def main(argv: list[str] | None = None) -> None:
@@ -34,7 +33,7 @@ def main(argv: list[str] | None = None) -> None:
     # 仓库逐个克隆
     for name, url in REPOS:
         dest = target_root / name
-        run(["git", "clone", "--depth", "1", url, str(dest)])
+        run(["git", "clone", url, str(dest)])
 
     print("[done]")
 

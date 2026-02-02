@@ -38,6 +38,20 @@ def _strip_ets(p: str) -> str:
     return t[:-4] if t.endswith(".ets") else t
 
 
+_SKIP_DIR_NAMES = {"http", "https", "util", "utils", "constant", "constants"}
+
+
+def _should_explore_file(path: str, *, ets_root: Path) -> bool:
+    fp = _norm(path)
+    if not fp:
+        return False
+    try:
+        rel = Path(fp).resolve().relative_to(ets_root.resolve())
+    except Exception:
+        return False
+    return not any((p or "").lower() in _SKIP_DIR_NAMES for p in rel.parts)
+
+
 def _safe_dir(name: str, fallback: str = "default") -> str:
     s = (name or "").strip() or fallback
     s = re.sub(r'[<>:"/\\|?*\x00-\x1F]', "_", s)
@@ -103,6 +117,15 @@ def _build_route_constant_maps(
             if len(candidates) >= int(max_files):
                 break
 
+    '''
+    从候选文件里提取哪些写法 对每个候选文件（最多读 max_chars_per_file 字符），针对每个符号名 sym ，支持三种常见定义方式，并用正则提取 key -> string ：
+
+    1. export enum RoutePath { Home = "/home" }
+    2. export const RoutePath = { Home: "/home" }
+    3. export class RoutePath { static Home = "/home" } （也支持 static readonly ）
+    
+    @TODO 待优化，因为这个文件可能会有其他形式的定义
+    '''
     enum_entry_re = re.compile(r"\b(\w+)\s*=\s*(['\"])(.+?)\2")
     obj_entry_re = re.compile(r"\b(\w+)\s*:\s*(['\"])(.+?)\2")
     class_static_entry_re = re.compile(r"\bstatic\s+(?:readonly\s+)?(\w+)\s*=\s*(['\"])(.+?)\2")
@@ -189,6 +212,7 @@ class RouteStructureAgent:
         self._route_const_full: Dict[str, str] = {}
         self._route_const_short: Dict[str, str] = {}
 
+    # 解析目标路径，处理一些代码文件中target是变量不是直接的路径
     def _resolve_target(self, target: str) -> str:
         t = (target or "").strip()
         if not t:
@@ -216,6 +240,7 @@ class RouteStructureAgent:
 
         return t
 
+    # 分析单个文件，提取路由相关信息
     async def _analyze_file(
         self,
         *,
@@ -225,28 +250,36 @@ class RouteStructureAgent:
         depth: int,
         chain: List[str],
     ) -> None:
+        # 1) 全局/递归限制：防止遍历过多文件或递归过深
         if self._count >= int(self.config.max_files):
             return
         if depth > int(self.config.max_depth):
             return
 
+        # 2) 去重：同一个文件只分析一次
         fp = _norm(str(file_path.resolve()))
         if fp in self._visited:
             return
         self._visited.add(fp)
         self._count += 1
 
+        # 3) 读取源码，空文件直接跳过
         code = read_source_file.invoke({"file_path": str(file_path)})
         if not code.strip():
             return
 
+        # 4) 提取 import，并将本地 import 解析为实际 .ets 文件路径
         imports = extract_imports.invoke({"source_code": code})
         resolved_map = resolve_imports_to_files.invoke(
             {"imports": imports, "current_file_path": str(file_path), "ets_root": str(self.ets_root)}
         )
         resolved_files = [str(x) for x in resolved_map.values()]
+        resolved_files = [f for f in resolved_files if _should_explore_file(f, ets_root=self.ets_root)]
+
+        # 5) 记录依赖图：当前文件 -> 直接依赖的本地文件
         self.dependency_graph[_norm(str(file_path))] = [_norm(x) for x in resolved_files]
 
+        # 6) 构造提示词交给 LLM：在当前文件中抽取路由边（组件/事件/目标页面）
         print(f"[RouteStructureAgent] Reading & analyzing file: {str(file_path)}")
         user_prompt = build_user_prompt(
             file_path=str(file_path),
@@ -259,13 +292,18 @@ class RouteStructureAgent:
         msg = await self.llm.ainvoke([("system", SYSTEM_PROMPT), ("user", user_prompt)])
         edges = _parse_llm_json_list(str(getattr(msg, "content", "") or ""))
 
+        # 7) 解析 LLM 输出并写入内存图（PTG）
         for e in edges:
             component_type = str(e.get("component_type") or "unknown")
             event = str(e.get("event") or "unknown")
             raw_target = str(e.get("target") or "").strip()
+
+            # 将常量/别名等 target 解析成最终可用的路由字符串
             target = self._resolve_target(raw_target)
             if not target:
                 continue
+
+            # 去重添加边，新增时打印日志
             if self.memory.add_edge(
                 source_page=main_page_key,
                 component_type=component_type,
@@ -274,9 +312,11 @@ class RouteStructureAgent:
             ):
                 print(f"Found route: {main_page_key} -> {target}")
 
+        # 8) 找到当前文件直接引用的本地组件文件，并递归继续分析
         nested = find_nested_component_files.invoke(
             {"imports": imports, "current_file_path": str(file_path), "ets_root": str(self.ets_root)}
         )
+        nested = [nf for nf in nested if _should_explore_file(nf, ets_root=self.ets_root)]
         next_chain = [*chain, _norm(str(file_path))]
         for nf in nested:
             await self._analyze_file(
@@ -308,6 +348,10 @@ class RouteStructureAgent:
             if not mp_file.exists():
                 print(f"[RouteStructureAgent] Main page file not found: {str(mp_file)}")
                 continue
+
+            self._visited = set()
+            self._count = 0
+
             await self._analyze_file(
                 main_page_key=mp_id,
                 file_path=mp_file,

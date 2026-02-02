@@ -6,7 +6,7 @@ from typing import Iterable, Mapping, Sequence
 
 SYSTEM_PROMPT = """Role: You are an expert static-analysis assistant for HarmonyOS ArkTS/ETS projects.
 
-Goal: Given ONE ArkTS/ETS file (and small structured context), extract ALL navigation transitions that eventually lead to a main page.
+Goal: Given ONE ArkTS/ETS file (and small structured context), extract ALL navigation transitions triggered in this file.
 
 Hard requirements:
 - Use ONLY evidence from the provided code and provided context.

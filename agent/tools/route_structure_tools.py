@@ -11,6 +11,20 @@ from langchain_core.tools import tool
 _IMPORT_RE = re.compile(r"""import\s+(.+?)\s+from\s+(['"])(.+?)\2\s*;?""", re.IGNORECASE)
 
 
+_EXPLORE_DIR_NAMES = {"pages", "route", "viewmodel", "formview", "view", "components"}
+
+
+def _should_explore_file(file_path: str, *, ets_root: str) -> bool:
+    fp = _norm(file_path)
+    if not fp:
+        return False
+    try:
+        rel = Path(fp).resolve().relative_to(Path(ets_root).resolve())
+    except Exception:
+        return False
+    return any((p or "").lower() in _EXPLORE_DIR_NAMES for p in rel.parts)
+
+
 def _norm(p: str) -> str:
     return (p or "").replace("\\", "/").strip()
 
@@ -23,6 +37,7 @@ def _load_json(path: str) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8", errors="ignore"))
 
 
+# 解析导入路径，将其转换为ETS文件路径
 def _resolve_import_to_ets(
     import_path: str, *, current_file_path: str, ets_root: str
 ) -> Optional[str]:
@@ -50,6 +65,7 @@ def _resolve_import_to_ets(
     return None
 
 
+# 加载主页面列表
 @tool("load_main_pages")
 def load_main_pages(main_pages_json_path: str) -> List[str]:
     """Load main pages from HarmonyOS main_pages.json (dict{src/pages} or list)."""
@@ -64,12 +80,15 @@ def load_main_pages(main_pages_json_path: str) -> List[str]:
     raise ValueError("Unsupported mainPages.json format.")
 
 
+# 读取源文件内容
 @tool("read_source_file")
 def read_source_file(file_path: str) -> str:
     """Read a source file as text (utf-8, ignore errors)."""
     return _read_text(file_path)
 
 
+# 从源文件中提取导入语句
+# @TODO 待优化，仍然有一些import没有被识别，例如：HarmoneyOpenEye的ContainerPage.ets和CoordinatePage.ets中的组件
 @tool("extract_imports")
 def extract_imports(source_code: str) -> Dict[str, str]:
     """Extract import aliases -> module path from TS/ArkTS source.
@@ -136,7 +155,7 @@ def _resolve_imports_to_files_impl(
         if not alias or not mod:
             continue
         resolved = _resolve_import_to_ets(mod, current_file_path=current_file_path, ets_root=ets_root)
-        if resolved:
+        if resolved and _should_explore_file(resolved, ets_root=ets_root):
             out[alias] = resolved
     return out
 
@@ -151,13 +170,14 @@ def resolve_imports_to_files(
     return _resolve_imports_to_files_impl(imports=imports, current_file_path=current_file_path, ets_root=ets_root)
 
 
+# 从导入语句中递归查找所有嵌套的组件文件
 @tool("find_nested_component_files")
 def find_nested_component_files(
     imports: Dict[str, str],
     current_file_path: str,
     ets_root: str,
 ) -> List[str]:
-    """Resolve ALL local imported ETS files from this file (depth traversal is handled by the agent)."""
+    """Resolve local imported ETS files under selected directories (depth traversal is handled by the agent)."""
     resolved_map = _resolve_imports_to_files_impl(
         imports=imports,
         current_file_path=current_file_path,
@@ -175,6 +195,7 @@ def find_nested_component_files(
     return out
 
 
+# 扫描路由常量文件
 @tool("scan_route_constant_files")
 def scan_route_constant_files(
     ets_root: str,
@@ -210,6 +231,7 @@ def scan_route_constant_files(
     return out
 
 
+# 保存JSON文件
 @tool("save_json")
 def save_json(obj: Any, output_path: str) -> str:
     """Save obj to output_path as pretty JSON."""
