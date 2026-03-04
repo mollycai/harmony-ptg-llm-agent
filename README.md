@@ -34,9 +34,9 @@ OPENAI_API_KEY=sk-xxxx
 LLM_CONFIG = {  
   "deepseek": {
     "baseURL": 'https://api.deepseek.com',
-    "apiKeyEnv": 'DEEPSEEK_API_KEY', // 需要自己在根目录添加.env文件存放API KEY
-    "model": 'deepseek-chat', // 最终交互的模型
-    "preprocessModel": 'deepseek-chat', // 预处理项目代码的模型
+    "apiKeyEnv": 'DEEPSEEK_API_KEY', # 需要自己在根目录添加.env文件存放API KEY
+    "model": 'deepseek-chat', # 最终交互的模型
+    "preprocessModel": 'deepseek-chat', # 预处理项目代码的模型
   }
 }
 ```
@@ -62,7 +62,7 @@ prompt都由一下三部分组成：
 
 ### 执行方式
 ```bash
-py llm/workflow.py --deepseek --HarmoneyOpenEye
+python llm/workflow.py --deepseek --HarmoneyOpenEye
 ```
 
 ### 待解决/探究的问题    
@@ -96,18 +96,21 @@ PTG schema:
 	```
 
 目前采用双Agent架构 :
-1. RouteStructureAgent
-	- 读取项目mainPages.json文件（获取项目的主页面）
-	- 生成 PTG (Page Transition Graph) 的框架，例如：{ "pages/MainPage.ets": [], "pages/DetailPage.ets": [] ...}，这个json对象的键都是mainPages的路径，值都是空数组。并在这个工作流中一直维护这个PTG对象。
-	- 根据这些主页面，读取对应页面文件的代码，如果发现嵌套的组件，例如pages/MainPage.ets中嵌套了pages/HomePage.ets，那么就需要递归地读取pages/HomePage.ets的代码，查找其中的路由跳转逻辑，注意代码开头导入的文件。如果发现路由跳转逻辑，则添加到PTG中对应主页面的数组中。
-	- 遍历+递归地处理所有主页面，直到没有新的跳转逻辑被发现。
+1. RouteStructureAgent（更偏向于固定的工作流）
+	a. 读取项目mainPages.json文件（获取项目的主页面）
+	b. 生成 PTG (Page Transition Graph) 的框架，例如：{ "pages/MainPage.ets": [], "pages/DetailPage.ets": [] ...}，这个json对象的键都是mainPages的路径，值都是空数组。并在这个工作流中一直维护这个PTG对象。
+	c. 根据这些主页面，读取对应页面文件的代码，如果发现嵌套的组件，例如pages/MainPage.ets中嵌套了pages/HomePage.ets，那么就需要递归地读取pages/HomePage.ets的代码，查找其中的路由跳转逻辑，注意代码开头导入的文件。如果发现路由跳转逻辑，则添加到PTG中对应主页面的数组中。
+	d. 遍历+递归地处理所有主页面，直到没有新的跳转逻辑被发现。
 2. RouteValidationAgent
-	- 校验PTG是否符合规则，检查：
-		1. 每个主页面路径是否存在跳转逻辑（即数组非空）
-		2. 每个跳转关系对应的组件和事件是否正确
-		3. 是否符合输出的PTG schema
-	- 定位到原项目代码中对应的跳转逻辑，回读代码，确认是否符合规则。
-	- 如果发现错误，修正原来生成的PTG。
+	a. 结构化校验：
+		- 校验PTG是否符合 PTG schema
+		- 统一在做normalize，路径 / 、去掉可选 .ets 、清理引号等
+		- 去重，如果发现在一个主页面下有重复的跳转关系，例如：component、event、target都相同，那么只保留一个。
+	b. 证据定位：对每条边 source -> target ，在“source 递归可达的文件集合”里找证据，证据最简单是字符串命中： target 出现在 router.pushUrl/replaceUrl/Navigation... 附近，或命中 route 常量符号（你已有 route_constant_map），再反向映射到字符串。
+	c. LLM 校验/修正:
+		- “边无证据/疑似幻觉”：让模型在给定代码片段里判定是否存在该跳转，存在则补齐 component/event；不存在则建议删除。
+		- “页面数组为空/疑似漏检”：让模型在 source 文件 + 递归依赖文件中“补全缺失边”
+	d. 循环：每轮：Validate → Patch PTG → 再 Validate，最多 N 轮（例如 2~3）避免发散。
 
 难点：  
 1. 如何让agent读懂项目代码，特别是精准触发跳转逻辑的组件类型
