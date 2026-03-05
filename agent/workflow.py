@@ -11,7 +11,7 @@ if str(_REPO_ROOT) not in sys.path:
 from config import PROJECT_CONFIG, get_llm_config, get_project_config
 from agent.route_structure_agent import RouteStructureAgent, RouteStructureAgentConfig
 from agent.route_validation_agent import RouteValidationAgent
-from agent.tools.route_structure_tools import load_main_pages
+from agent.tools.project_reader import ProjectReader
 
 
 def _parse_args(argv: list[str]) -> tuple[str, str]:
@@ -43,12 +43,13 @@ def main() -> None:
             main_pages_json_path=proj["projectMainPagePath"],
             llm_provider_config=llm_cfg,
             llm_model_name=llm_cfg["model"],
+            import_alias_map=proj.get("importAliasMap"),
         )
     )
 
     ptg = structure_agent.run_sync()
 
-    main_pages = load_main_pages.invoke({"main_pages_json_path": proj["projectMainPagePath"]})
+    main_pages = ProjectReader.load_main_pages(proj["projectMainPagePath"])
     main_pages = [str(x) for x in (main_pages or []) if str(x).strip()]
 
     validator = RouteValidationAgent(main_pages=main_pages)

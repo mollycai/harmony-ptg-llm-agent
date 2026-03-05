@@ -13,14 +13,9 @@ from langchain_openai import ChatOpenAI
 
 from agent.memory import PTGMemory
 from agent.prompt.route_structure_prompt import SYSTEM_PROMPT, build_user_prompt
-from agent.tools.route_structure_tools import (
-    extract_imports,
-    find_nested_component_files,
-    load_main_pages,
-    read_source_file,
-    resolve_imports_to_files,
-    save_json,
-)
+from agent.tools.import_resolver import ImportResolver
+from agent.tools.project_reader import ProjectReader
+from agent.tools.route_constant_resolver import RouteConstantResolver
 from llm_server import build_chat_model
 
 
@@ -36,20 +31,6 @@ def _ensure_ets(p: str) -> str:
 def _strip_ets(p: str) -> str:
     t = _norm(p)
     return t[:-4] if t.endswith(".ets") else t
-
-
-_SKIP_DIR_NAMES = {"http", "https", "util", "utils", "constant", "constants"}
-
-
-def _should_explore_file(path: str, *, ets_root: Path) -> bool:
-    fp = _norm(path)
-    if not fp:
-        return False
-    try:
-        rel = Path(fp).resolve().relative_to(ets_root.resolve())
-    except Exception:
-        return False
-    return not any((p or "").lower() in _SKIP_DIR_NAMES for p in rel.parts)
 
 
 def _safe_dir(name: str, fallback: str = "default") -> str:
@@ -81,103 +62,6 @@ def _parse_llm_json_list(text: str) -> List[Dict[str, Any]]:
             return []
 
 
-def _read_text_limit(path: Path, *, limit_chars: int) -> str:
-    try:
-        return path.read_text(encoding="utf-8", errors="ignore")[: max(0, int(limit_chars))]
-    except Exception:
-        return ""
-
-
-def _build_route_constant_maps(
-    *,
-    ets_root: Path,
-    max_files: int,
-    max_chars_per_file: int,
-) -> tuple[Dict[str, str], Dict[str, str]]:
-    full_map: Dict[str, str] = {}
-    short_map: Dict[str, str] = {}
-    short_seen: Dict[str, int] = {}
-
-    if not ets_root.exists():
-        return full_map, short_map
-
-    symbols = ("RoutePath", "RouterPath", "NavPath", "NavigationPath")
-    candidates: List[Path] = []
-
-    for p in ets_root.rglob("*"):
-        if not p.is_file():
-            continue
-        if p.suffix.lower() not in {".ets", ".ts"}:
-            continue
-        head = _read_text_limit(p, limit_chars=8192)
-        if not head:
-            continue
-        if any(s in head for s in symbols):
-            candidates.append(p)
-            if len(candidates) >= int(max_files):
-                break
-
-    '''
-    从候选文件里提取哪些写法 对每个候选文件（最多读 max_chars_per_file 字符），针对每个符号名 sym ，支持三种常见定义方式，并用正则提取 key -> string ：
-
-    1. export enum RoutePath { Home = "/home" }
-    2. export const RoutePath = { Home: "/home" }
-    3. export class RoutePath { static Home = "/home" } （也支持 static readonly ）
-    
-    @TODO 待优化，因为这个文件可能会有其他形式的定义
-    '''
-    enum_entry_re = re.compile(r"\b(\w+)\s*=\s*(['\"])(.+?)\2")
-    obj_entry_re = re.compile(r"\b(\w+)\s*:\s*(['\"])(.+?)\2")
-    class_static_entry_re = re.compile(r"\bstatic\s+(?:readonly\s+)?(\w+)\s*=\s*(['\"])(.+?)\2")
-
-    for f in candidates:
-        src = _read_text_limit(f, limit_chars=max_chars_per_file)
-        if not src:
-            continue
-
-        for sym in symbols:
-            if sym not in src:
-                continue
-
-            for m in re.finditer(rf"\b(?:export\s+)?enum\s+{re.escape(sym)}\s*\{{([\s\S]*?)\}}", src):
-                body = m.group(1) or ""
-                for em in enum_entry_re.finditer(body):
-                    k = em.group(1)
-                    v = _norm(em.group(3))
-                    full_map[f"{sym}.{k}"] = v
-                    short_seen[k] = short_seen.get(k, 0) + 1
-                    if short_seen[k] == 1:
-                        short_map[k] = v
-                    else:
-                        short_map.pop(k, None)
-
-            for m in re.finditer(rf"\b(?:export\s+)?const\s+{re.escape(sym)}\s*=\s*\{{([\s\S]*?)\}}", src):
-                body = m.group(1) or ""
-                for om in obj_entry_re.finditer(body):
-                    k = om.group(1)
-                    v = _norm(om.group(3))
-                    full_map[f"{sym}.{k}"] = v
-                    short_seen[k] = short_seen.get(k, 0) + 1
-                    if short_seen[k] == 1:
-                        short_map[k] = v
-                    else:
-                        short_map.pop(k, None)
-
-            for m in re.finditer(rf"\b(?:export\s+)?class\s+{re.escape(sym)}\s*\{{([\s\S]*?)\}}", src):
-                body = m.group(1) or ""
-                for cm in class_static_entry_re.finditer(body):
-                    k = cm.group(1)
-                    v = _norm(cm.group(3))
-                    full_map[f"{sym}.{k}"] = v
-                    short_seen[k] = short_seen.get(k, 0) + 1
-                    if short_seen[k] == 1:
-                        short_map[k] = v
-                    else:
-                        short_map.pop(k, None)
-
-    return full_map, short_map
-
-
 @dataclass
 class RouteStructureAgentConfig:
     project_name: str
@@ -185,6 +69,7 @@ class RouteStructureAgentConfig:
     main_pages_json_path: str
     llm_provider_config: dict
     llm_model_name: str
+    import_alias_map: Optional[Dict[str, str]] = None
 
     ets_root: Optional[str] = None
     output_dir: str = str(Path(__file__).resolve().parent / "result")
@@ -201,46 +86,44 @@ class RouteStructureAgent:
 
         ets_root = config.ets_root or str(Path(config.project_path) / "src" / "main" / "ets")
         self.ets_root = Path(ets_root)
+        self.project_root = Path(config.project_path)
+        self.import_alias_map = self._normalize_import_alias_map(config.import_alias_map)
+
+        if self.import_alias_map:
+            print(
+                "[RouteStructureAgent] Import alias map loaded: "
+                + json.dumps(self.import_alias_map, ensure_ascii=False)
+            )
+        else:
+            print("[RouteStructureAgent] Import alias map is empty.")
 
         self.memory = PTGMemory()
-        self.dependency_graph: Dict[str, List[str]] = {}
+        self.reader = ProjectReader(ets_root=str(self.ets_root))
+        self.import_resolver = ImportResolver(reader=self.reader, import_alias_map=self.import_alias_map)
+        self.route_const_resolver = RouteConstantResolver(
+            ets_root=str(self.ets_root),
+            max_files=int(self.config.max_route_files),
+            max_chars_per_file=int(self.config.max_route_file_chars),
+        )
 
+        self.dependency_graph: Dict[str, List[str]] = {}
         self._visited: Set[str] = set()
         self._count = 0
-
         self._main_page_ids: Set[str] = set()
-        self._route_const_full: Dict[str, str] = {}
-        self._route_const_short: Dict[str, str] = {}
 
-    # 解析目标路径，处理一些代码文件中target是变量不是直接的路径
-    def _resolve_target(self, target: str) -> str:
-        t = (target or "").strip()
-        if not t:
-            return t
+    def _normalize_import_alias_map(self, raw_map: Optional[Dict[str, str]]) -> Dict[str, str]:
+        out: Dict[str, str] = {}
+        for k, v in (raw_map or {}).items():
+            alias = (k or "").strip()
+            base = (v or "").strip()
+            if not alias or not base:
+                continue
+            p = Path(base)
+            if not p.is_absolute():
+                p = (self.project_root / p).resolve()
+            out[alias] = str(p)
+        return out
 
-        if (t.startswith("\"") and t.endswith("\"")) or (t.startswith("'") and t.endswith("'")):
-            t = t[1:-1].strip()
-
-        original = _norm(t)
-
-        mapped = self._route_const_full.get(t)
-        if mapped:
-            t = mapped
-        else:
-            m = re.fullmatch(r"(\w+)\.(\w+)", t)
-            if m:
-                mapped2 = self._route_const_short.get(m.group(2))
-                if mapped2:
-                    t = mapped2
-
-        t = _strip_ets(t)
-
-        if t and t != original:
-            print(f"[RouteStructureAgent] Resolved target: {original} -> {t}")
-
-        return t
-
-    # 分析单个文件，提取路由相关信息
     async def _analyze_file(
         self,
         *,
@@ -250,36 +133,31 @@ class RouteStructureAgent:
         depth: int,
         chain: List[str],
     ) -> None:
-        # 1) 全局/递归限制：防止遍历过多文件或递归过深
         if self._count >= int(self.config.max_files):
             return
         if depth > int(self.config.max_depth):
             return
 
-        # 2) 去重：同一个文件只分析一次
         fp = _norm(str(file_path.resolve()))
         if fp in self._visited:
             return
         self._visited.add(fp)
         self._count += 1
 
-        # 3) 读取源码，空文件直接跳过
-        code = read_source_file.invoke({"file_path": str(file_path)})
+        code = self.reader.read_source_file(str(file_path))
         if not code.strip():
             return
 
-        # 4) 提取 import，并将本地 import 解析为实际 .ets 文件路径
-        imports = extract_imports.invoke({"source_code": code})
-        resolved_map = resolve_imports_to_files.invoke(
-            {"imports": imports, "current_file_path": str(file_path), "ets_root": str(self.ets_root)}
+        imports = self.import_resolver.extract_imports(code)
+        resolved_map = self.import_resolver.resolve_imports_to_files(
+            imports=imports,
+            current_file_path=str(file_path),
         )
         resolved_files = [str(x) for x in resolved_map.values()]
-        resolved_files = [f for f in resolved_files if _should_explore_file(f, ets_root=self.ets_root)]
+        resolved_files = [f for f in resolved_files if self.reader.should_explore_file(f)]
 
-        # 5) 记录依赖图：当前文件 -> 直接依赖的本地文件
         self.dependency_graph[_norm(str(file_path))] = [_norm(x) for x in resolved_files]
 
-        # 6) 构造提示词交给 LLM：在当前文件中抽取路由边（组件/事件/目标页面）
         print(f"[RouteStructureAgent] Reading & analyzing file: {str(file_path)}")
         user_prompt = build_user_prompt(
             file_path=str(file_path),
@@ -287,23 +165,20 @@ class RouteStructureAgent:
             main_pages=main_pages,
             dependency_chain=chain,
             resolved_import_files=resolved_files,
-            route_constant_map=self._route_const_full,
+            route_constant_map=self.route_const_resolver.full_map,
         )
         msg = await self.llm.ainvoke([("system", SYSTEM_PROMPT), ("user", user_prompt)])
         edges = _parse_llm_json_list(str(getattr(msg, "content", "") or ""))
 
-        # 7) 解析 LLM 输出并写入内存图（PTG）
         for e in edges:
             component_type = str(e.get("component_type") or "unknown")
             event = str(e.get("event") or "unknown")
             raw_target = str(e.get("target") or "").strip()
 
-            # 将常量/别名等 target 解析成最终可用的路由字符串
-            target = self._resolve_target(raw_target)
+            target = self.route_const_resolver.resolve_target(raw_target)
             if not target:
                 continue
 
-            # 去重添加边，新增时打印日志
             if self.memory.add_edge(
                 source_page=main_page_key,
                 component_type=component_type,
@@ -312,11 +187,11 @@ class RouteStructureAgent:
             ):
                 print(f"Found route: {main_page_key} -> {target}")
 
-        # 8) 找到当前文件直接引用的本地组件文件，并递归继续分析
-        nested = find_nested_component_files.invoke(
-            {"imports": imports, "current_file_path": str(file_path), "ets_root": str(self.ets_root)}
+        nested = self.import_resolver.find_nested_component_files(
+            imports=imports,
+            current_file_path=str(file_path),
         )
-        nested = [nf for nf in nested if _should_explore_file(nf, ets_root=self.ets_root)]
+        nested = [nf for nf in nested if self.reader.should_explore_file(nf)]
         next_chain = [*chain, _norm(str(file_path))]
         for nf in nested:
             await self._analyze_file(
@@ -328,18 +203,13 @@ class RouteStructureAgent:
             )
 
     async def run(self) -> Dict[str, List[Dict[str, Any]]]:
-        main_pages = load_main_pages.invoke({"main_pages_json_path": self.config.main_pages_json_path})
+        main_pages = ProjectReader.load_main_pages(self.config.main_pages_json_path)
         main_pages = [str(x) for x in (main_pages or []) if str(x).strip()]
         main_page_ids = [_strip_ets(p) for p in main_pages]
 
         self._main_page_ids = {p for p in main_page_ids if p}
         self.memory.init_from_main_pages(sorted(self._main_page_ids))
-
-        self._route_const_full, self._route_const_short = _build_route_constant_maps(
-            ets_root=self.ets_root,
-            max_files=int(self.config.max_route_files),
-            max_chars_per_file=int(self.config.max_route_file_chars),
-        )
+        self.route_const_resolver.build()
 
         for mp_raw, mp_id in zip(main_pages, main_page_ids):
             if not mp_id:
@@ -362,9 +232,8 @@ class RouteStructureAgent:
 
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir = Path(self.config.output_dir) / _safe_dir(self.config.project_name)
-
         ptg_path = out_dir / f"ptg_route_structure_{stamp}.json"
-        save_json.invoke({"obj": self.memory.to_json_obj(), "output_path": str(ptg_path)})
+        self.memory.save_json(str(ptg_path))
         print(f"[RouteStructureAgent] PTG saved: {str(ptg_path)}")
 
         return self.memory.to_json_obj()

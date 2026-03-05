@@ -4,7 +4,11 @@
 - HarmoneyOpenEye: https://github.com/WinWang/HarmoneyOpenEye
 - Harmony-arkts-movie-music-app-ui: https://github.com/wuyuanwuhui99/Harmony-arkts-movie-music-app-ui
 - biandan-satge: https://github.com/AlthenWaySatan/biandan-satge
+- open-neteasy: https://github.com/linwu-hi/open_neteasy_cloud
+- Msea-HarmonyOS: https://github.com/eternaljust/Msea_HarmonyOS
 - ArkTS-wphui1.0: https://gitee.com/boring-music/ArkTS-wphui1.0
+- homework-taskist: https://gitee.com/handwer/homework-tasklist-v2
+- on-bill: https://gitee.com/ericple/oh-bill
 - MultiShopping: https://gitee.com/harmonyos/codelabs/tree/master/MultiShopping
 - MultiDeviceMusic: https://gitee.com/harmonyos/codelabs/tree/master/MultiDeviceMusic
 
@@ -48,6 +52,11 @@ APP_CONFIG = {
     "projectPath": "E:/HarmonyOS/project/HarmoneyOpenEye",  # 项目路径
     "projectMainPagePath":
       "E:/HarmonyOS/project/HarmoneyOpenEye/entry/src/main/resources/base/profile/main_pages.json",  # 项目主页面路径
+    "importAliasMap": {  # 可选：导入别名映射（相对 projectPath 或绝对路径）
+      "@/": "src/main/ets",
+      "@entry/": "src/main/ets",
+      "@common/": "../common/src/main/ets"
+    },
   },
 }
 ``` 
@@ -62,15 +71,17 @@ prompt都由一下三部分组成：
 
 ### 执行方式
 ```bash
-python llm/workflow.py --deepseek --HarmoneyOpenEye
+python agent/workflow.py --deepseek --HarmoneyOpenEye
 ```
 
 ### 待解决/探究的问题    
-1. 海外的大模型怎么搞
-2. 国内的大模型，DeepSeek目前效果还挺好的，但是其他模型效果不好，考虑不同的模型使用不同的prompt，或换模型（Qwen, Kimi）
-3. Harmony-arts-movie-music-app-ui项目，静态解析pages/IndexPage.ets文件的结果，代码中没有显示的路由跳转规则，但通过静态解析仍然能解析出，同时其他页面的一些跳转关系，通过静态解析无法解析出来（例如：pages/RegisterPage.ets等），但原作者仍然将其FNR率统计和计算为0%。
-4. MutliShopping该项目与其他项目的结构不同，提取了common模块，在解析和组装prompt可能存在影响，考虑更换其他数据集或调整解析逻辑。
-5. 生成的PTG存在不稳定（需要后续添加Agent工作流进行校验和修正）
+1. 国内的大模型，DeepSeek目前效果还挺好的，但是其他模型效果不好，考虑不同的模型使用不同的prompt，或换模型（Qwen, Kimi）
+3. MutliShopping该项目与其他项目的结构不同，提取了common模块，在解析和组装prompt可能存在影响，考虑更换其他数据集或调整解析逻辑。
+4. 目前存在target的路径没有正确被解析成URL（MultiDeviceMusic项目），每个项目都存在target出现router.back()的问题，出现target是unknown的情况（Biandan）。
+5. MultiDeviceMusic和MutliShopping仍然存在FN的情况，一些边没有被发现
+
+### 原论文可能存在的问题
+1. Harmony-arts-movie-music-app-ui项目，静态解析pages/IndexPage.ets文件的结果，代码中没有显示的路由跳转规则，但通过静态解析仍然能解析出，同时其他页面的一些跳转关系，通过静态解析无法解析出来（例如：pages/RegisterPage.ets等），但原作者仍然将其FNR率统计和计算为0%。
 
 ## RAG & Agent增强版本（重构代码，与之前的纯LLM做对比）
 

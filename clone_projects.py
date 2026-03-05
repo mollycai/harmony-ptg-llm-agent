@@ -7,8 +7,12 @@ REPOS = [
     ("HarmoneyOpenEye", "https://github.com/WinWang/HarmoneyOpenEye.git"),
     ("Harmony-arkts-movie-music-app-ui", "https://github.com/wuyuanwuhui99/Harmony-arkts-movie-music-app-ui.git"),
     ("biandan-satge", "https://github.com/AlthenWaySatan/biandan-satge.git"),
+    ("open-neteasy", "https://github.com/linwu-hi/open_neteasy_cloud.git"),
+    ("Msea-HarmonyOS", "https://github.com/eternaljust/Msea_HarmonyOS.git"),
     ("ArkTS-wphui1.0", "https://gitee.com/boring-music/ArkTS-wphui1.0.git"),
-		("codelabs", "https://gitee.com/harmonyos/codelabs.git"),
+    ("homework-taskist", "https://gitee.com/handwer/homework-tasklist-v2.git"),
+    ("on-bill", "https://gitee.com/ericple/oh-bill.git"),
+    ("codelabs", "https://gitee.com/harmonyos/codelabs.git"),
 ]
 
 def run(cmd: list[str], cwd: Path | None = None) -> None:

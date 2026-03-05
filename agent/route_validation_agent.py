@@ -99,7 +99,7 @@ class RouteValidationAgent:
                 out[p] = []
 
         report["sources_count"] = len(out)
-        report["missing_main_pages"] = sorted([p for p in self._main_set if p not in ptg])
+        report["missing_main_pages"] = sorted([p for p in self._main_set if p not in out])
         report["empty_pages"] = sorted([k for k, v in out.items() if k in self._main_set and not (v or [])])
         report["edges_out"] = sum(len(v or []) for v in out.values())
 

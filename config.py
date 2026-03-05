@@ -24,31 +24,92 @@ PROJECT_CONFIG = {
         "projectName": "HarmoneyOpenEye",
         "projectPath": "/Users/edwincai/MUST/projects/HarmoneyOpenEye/entry",
         "projectMainPagePath": "/Users/edwincai/MUST/projects/HarmoneyOpenEye/entry/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+        },
     },
     "HarmonyMovieMusic": {
         "projectName": "Harmony-arkts-movie-music-app-ui",
         "projectPath": "/Users/edwincai/MUST/projects/Harmony-arkts-movie-music-app-ui/entry",
         "projectMainPagePath": "/Users/edwincai/MUST/projects/Harmony-arkts-movie-music-app-ui/entry/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+        },
     },
     "ArkTSWPHUI": {
         "projectName": "ArkTS-wphui1.0",
         "projectPath": "/Users/edwincai/MUST/projects/ArkTS-wphui1.0/entry",
         "projectMainPagePath": "/Users/edwincai/MUST/projects/ArkTS-wphui1.0/entry/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+        },
     },
     "MultiDeviceMusic": {
         "projectName": "MultiDeviceMusic",
         "projectPath": "/Users/edwincai/MUST/projects/codelabs/MultiDeviceMusic/entry",
         "projectMainPagePath": "/Users/edwincai/MUST/projects/codelabs/MultiDeviceMusic/entry/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+        },
     },
     "Biandan": {
         "projectName": "Biandan",
         "projectPath": "/Users/edwincai/MUST/projects/biandan-satge/entry",
         "projectMainPagePath": "/Users/edwincai/MUST/projects/biandan-satge/entry/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+        },
+    },
+    "OpenNeteasy": {
+        "projectName": "open-neteasy",
+        "projectPath": "/Users/edwincai/MUST/projects/open-neteasy/entry",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/open-neteasy/entry/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+        },
+    },
+    "MseaHarmonyOS": {
+        "projectName": "Msea-HarmonyOS",
+        "projectPath": "/Users/edwincai/MUST/projects/Msea-HarmonyOS/entry",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/Msea-HarmonyOS/entry/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+        },
+    },
+    "HomeworkTaskist": {
+        "projectName": "homework-taskist",
+        "projectPath": "/Users/edwincai/MUST/projects/homework-taskist/entry",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/homework-taskist/entry/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+        },
+    },
+    "OnBill": {
+        "projectName": "on-bill",
+        "projectPath": "/Users/edwincai/MUST/projects/on-bill/entry",
+        "projectMainPagePath": "/Users/edwincai/MUST/projects/on-bill/entry/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+        },
     },
     "MultiShopping": {
         "projectName": "MultiShopping",
         "projectPath": "/Users/edwincai/MUST/projects/codelabs/MultiShopping/product/phone",
         "projectMainPagePath": "/Users/edwincai/MUST/projects/codelabs/MultiShopping/product/phone/src/main/resources/base/profile/main_pages.json",
+        "importAliasMap": {
+            "@/": "src/main/ets",
+            "@entry/": "src/main/ets",
+            "@common/": "../common/src/main/ets",
+        },
     },
 }
 
