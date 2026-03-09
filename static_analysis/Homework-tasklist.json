@@ -1,0 +1,20 @@
+{
+  "pages/Index": [
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/About"
+    },
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/OOBE"
+    }
+  ],
+  "pages/About": [],
+  "pages/OOBE": []
+}

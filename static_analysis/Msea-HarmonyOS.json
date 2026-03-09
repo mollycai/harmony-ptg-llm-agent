@@ -1,0 +1,24 @@
+{
+	"pages/Index":[],
+  "pages/home/HomePage":[],
+  "pages/notice/NoticePage":[
+		{
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/profile/LoginPage"
+    }
+	],
+  "pages/profile/ProfilePage":[],
+  "pages/profile/SettingPage":[
+		{
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/profile/LoginPage"
+    }
+	],
+  "pages/profile/LoginPage":[]
+}

@@ -1,0 +1,28 @@
+{
+  "pages/Index": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/BillInfoPage"
+    },
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/Copyright"
+    },
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/addBalance"
+    }
+  ],
+  "pages/Copyright": [],
+  "pages/addBalance": [],
+  "pages/BillInfoPage": []
+}
