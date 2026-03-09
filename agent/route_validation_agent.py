@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Tuple
 
 from agent.utils.route_utils import is_invalid_target, normalize_path, strip_ets
@@ -19,6 +20,24 @@ def _edge_key(edge: Dict[str, Any]) -> Tuple[str, str, str]:
     return component_type, event, target
 
 
+_EVENT_RE = re.compile(r"^on[A-Z]\w*$")
+_BAD_COMPONENT_RE = re.compile(r"^(router\.|this\.|console\.|pushUrl$|replaceUrl$|push$|replace$)", re.IGNORECASE)
+
+
+def _normalize_component_type(raw: Any) -> str:
+    c = str(raw or "").strip()
+    if not c or _BAD_COMPONENT_RE.search(c):
+        return "__Common__"
+    return c
+
+
+def _normalize_event(raw: Any) -> str:
+    e = str(raw or "").strip()
+    if _EVENT_RE.fullmatch(e):
+        return e
+    return "onClick"
+
+
 class RouteValidationAgent:
     def __init__(self, *, main_pages: List[str]) -> None:
         main_page_ids = [strip_ets(_strip_quotes(str(p))) for p in (main_pages or []) if str(p).strip()]
@@ -32,8 +51,10 @@ class RouteValidationAgent:
             "edges_in": 0,
             "edges_out": 0,
             "edges_dropped_schema": 0,
-            "edges_dropped_empty_target": 0,
+            "edges_dropped_invalid_target": 0,
             "edges_deduped": 0,
+            "edges_fixed_component": 0,
+            "edges_fixed_event": 0,
             "empty_pages": [],
             "missing_main_pages": [],
         }
@@ -64,17 +85,24 @@ class RouteValidationAgent:
                     report["edges_dropped_schema"] += 1
                     continue
 
-                component_type = str(((e.get("component") or {}).get("type")) or e.get("component_type") or "unknown")
-                event = str(e.get("event") or "unknown")
+                raw_component = ((e.get("component") or {}).get("type")) or e.get("component_type")
+                raw_event = e.get("event")
+                component_type = _normalize_component_type(raw_component)
+                event = _normalize_event(raw_event)
                 target_raw = str(e.get("target") or "")
                 target = strip_ets(_strip_quotes(normalize_path(target_raw)))
                 if is_invalid_target(target):
-                    report["edges_dropped_empty_target"] += 1
+                    report["edges_dropped_invalid_target"] += 1
                     continue
 
+                if component_type != str(raw_component or "").strip():
+                    report["edges_fixed_component"] += 1
+                if event != str(raw_event or "").strip():
+                    report["edges_fixed_event"] += 1
+
                 ne: Dict[str, Any] = {
-                    "component": {"type": (component_type or "").strip() or "unknown"},
-                    "event": (event or "").strip() or "unknown",
+                    "component": {"type": component_type},
+                    "event": event,
                     "target": target,
                 }
 

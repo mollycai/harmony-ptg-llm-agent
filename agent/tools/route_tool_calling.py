@@ -72,8 +72,9 @@ class RouteToolCallingResolver:
         messages: List[Any] = [
             SystemMessage(
                 content=(
-                    "你是路由补解析助手。你会根据给定 unresolved 边，调用工具解析路径。\n"
-                    "最终仅输出 JSON 数组，每项字段：component_type,event,target,target_expr。"
+                    "You are a route-repair assistant.\n"
+                    "Given unresolved navigation edges, call tools to resolve import paths and target expressions.\n"
+                    "Return ONLY a JSON array, where each item has: component_type, event, target, target_expr."
                 )
             ),
             HumanMessage(
@@ -140,12 +141,12 @@ class RouteToolCallingResolver:
             StructuredTool.from_function(
                 func=_tool_resolve_import_path,
                 name="resolve_import_path",
-                description="解析 import 路径或符号别名，返回对应的 .ets 文件绝对路径。",
+                description="Resolve an import path or symbol alias to an absolute .ets file path.",
             ),
             StructuredTool.from_function(
                 func=_tool_resolve_target_expr,
                 name="resolve_target_expr",
-                description="解析路由 target_expr，返回页面路径（例如 pages/xx）。",
+                description="Resolve a route target_expr into a page path (for example, pages/xx).",
             ),
         ]
 

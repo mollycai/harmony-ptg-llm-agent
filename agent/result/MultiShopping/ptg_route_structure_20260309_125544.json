@@ -1,0 +1,24 @@
+{
+  "pages/CommodityDetailPage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/ConfirmOrderPage"
+    }
+  ],
+  "pages/ConfirmOrderPage": [],
+  "pages/MainPage": [
+    {
+      "component": {
+        "type": "Home"
+      },
+      "event": "onClickItem",
+      "target": "pages/CommodityDetailPage"
+    }
+  ],
+  "pages/OrderDetailListPage": [],
+  "pages/PayOrderPage": [],
+  "pages/SplashPage": []
+}

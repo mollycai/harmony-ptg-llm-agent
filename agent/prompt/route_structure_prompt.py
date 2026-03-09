@@ -25,8 +25,13 @@ Output schema (JSON array):
 ]
 
 Field rules:
-- component_type: the UI component or trigger (e.g., Button, ListItem, onClick, router.push). Use "__Common__" if trigger is inside a nested component and the exact UI component is unclear.
-- event: event name that triggers navigation (e.g., onClick, onTap). Use "unknown" if unclear.
+- component_type:
+  - Must be a UI component or trigger owner name (e.g., Button, ListItem, Image, CommodityList, "__Common__").
+  - Do NOT output API or function names as component_type (e.g., router.pushUrl, router.push, this.xxx, console.xxx).
+- event:
+  - Must be an event name in the form onXxx.
+  - Never output "unknown".
+  - If the event cannot be confidently identified, use "onClick" as the default fallback.
 - target:
   - Prefer an actual main page path string (e.g., pages/xxx/DetailPage.ets).
   - If the code uses an identifier like RoutePath.TopicDetailPage, and the Route Constant Map contains it, output the resolved string value.
@@ -38,6 +43,10 @@ Field rules:
   - If target is a direct string literal, target_expr can be the same value.
 - For back navigation without explicit destination, return [] for that call.
 - If there is no navigation, return [].
+- Before final output, self-check every edge:
+  - component_type is not an API/method name.
+  - event matches onXxx; if uncertain, set event to onClick.
+  - target is not a back-navigation expression and not "unknown".
 """
 
 
