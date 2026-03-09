@@ -1,0 +1,24 @@
+{
+  "pages/CommodityDetailPage": [],
+  "pages/ConfirmOrderPage": [],
+  "pages/MainPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClickItem",
+      "target": "PageConstants.COMMODITY_DETAIL_PAGE_URL"
+    }
+  ],
+  "pages/OrderDetailListPage": [],
+  "pages/PayOrderPage": [],
+  "pages/SplashPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/MainPage"
+    }
+  ]
+}

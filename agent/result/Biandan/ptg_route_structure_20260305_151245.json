@@ -1,0 +1,110 @@
+{
+  "pages/Index": [
+    {
+      "component": {
+        "type": "router"
+      },
+      "event": "aboutToAppear",
+      "target": "pages/guide"
+    },
+    {
+      "component": {
+        "type": "Stack"
+      },
+      "event": "onClick",
+      "target": "pages/setting"
+    },
+    {
+      "component": {
+        "type": "Stack"
+      },
+      "event": "onClick",
+      "target": "pages/help"
+    },
+    {
+      "component": {
+        "type": "Stack"
+      },
+      "event": "onClick",
+      "target": "pages/illustrate"
+    },
+    {
+      "component": {
+        "type": "Stack"
+      },
+      "event": "onClick",
+      "target": "pages/about"
+    }
+  ],
+  "pages/about": [
+    {
+      "component": {
+        "type": "Image"
+      },
+      "event": "onClick",
+      "target": "router.back()"
+    },
+    {
+      "component": {
+        "type": "Column"
+      },
+      "event": "onClick",
+      "target": "pages/guide"
+    },
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/illustrate"
+    }
+  ],
+  "pages/guide": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/Index"
+    },
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/illustrate"
+    },
+    {
+      "component": {
+        "type": "Stepper"
+      },
+      "event": "onFinish",
+      "target": "pages/Index"
+    }
+  ],
+  "pages/help": [],
+  "pages/illustrate": [],
+  "pages/setting": [
+    {
+      "component": {
+        "type": "Image"
+      },
+      "event": "onClick",
+      "target": "unknown"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onChanged",
+      "target": "unknown"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "outPut",
+      "target": "unknown"
+    }
+  ]
+}

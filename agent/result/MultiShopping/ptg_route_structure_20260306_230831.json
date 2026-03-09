@@ -1,0 +1,16 @@
+{
+  "pages/CommodityDetailPage": [],
+  "pages/ConfirmOrderPage": [],
+  "pages/MainPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClickItem",
+      "target": "pages/CommodityDetailPage"
+    }
+  ],
+  "pages/OrderDetailListPage": [],
+  "pages/PayOrderPage": [],
+  "pages/SplashPage": []
+}

@@ -1,0 +1,24 @@
+{
+  "pages/CommodityDetailPage": [],
+  "pages/ConfirmOrderPage": [],
+  "pages/MainPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/CommodityDetailPage"
+    }
+  ],
+  "pages/OrderDetailListPage": [],
+  "pages/PayOrderPage": [],
+  "pages/SplashPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/MainPage"
+    }
+  ]
+}

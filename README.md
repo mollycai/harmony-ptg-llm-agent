@@ -78,7 +78,8 @@ python agent/workflow.py --deepseek --HarmoneyOpenEye
 1. 国内的大模型，DeepSeek目前效果还挺好的，但是其他模型效果不好，考虑不同的模型使用不同的prompt，或换模型（Qwen, Kimi）
 3. MutliShopping该项目与其他项目的结构不同，提取了common模块，在解析和组装prompt可能存在影响，考虑更换其他数据集或调整解析逻辑。
 4. 目前存在target的路径没有正确被解析成URL（MultiDeviceMusic项目），每个项目都存在target出现router.back()的问题，出现target是unknown的情况（Biandan）。
-5. MultiDeviceMusic和MutliShopping仍然存在FN的情况，一些边没有被发现
+5. MultiDeviceMusic和MutliShopping仍然存在FN的情况，一些边没有被发现/一些边多出来了
+6. SplashPage -> MainPage 是否算一条边
 
 ### 原论文可能存在的问题
 1. Harmony-arts-movie-music-app-ui项目，静态解析pages/IndexPage.ets文件的结果，代码中没有显示的路由跳转规则，但通过静态解析仍然能解析出，同时其他页面的一些跳转关系，通过静态解析无法解析出来（例如：pages/RegisterPage.ets等），但原作者仍然将其FNR率统计和计算为0%。

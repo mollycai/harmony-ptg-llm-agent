@@ -1,0 +1,125 @@
+{
+  "pages/CommodityDetailPage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/ConfirmOrderPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/ConfirmOrderPage"  // 疑似多处一条边
+    }
+  ],
+  "pages/ConfirmOrderPage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/PayOrderPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/PayOrderPage" // 疑似多处一条边
+    }
+  ],
+  "pages/MainPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/CommodityDetailPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/OrderDetailListPage"
+    },
+    {
+      "component": {
+        "type": "Image"
+      },
+      "event": "onClick",
+      "target": "pages/OrderDetailListPage"
+    },
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/ConfirmOrderPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClickItem",
+      "target": "pages/CommodityDetailPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/ConfirmOrderPage" // 疑似多出来的
+    },
+    {
+      "component": {
+        "type": "CommodityList"
+      },
+      "event": "unknown",
+      "target": "pages/CommodityDetailPage" // 疑似多出来的
+    }
+  ],
+  "pages/OrderDetailListPage": [
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/PayOrderPage"
+    },
+    {
+      "component": {
+        "type": "CommodityList"
+      },
+      "event": "onClickItem",
+      "target": "pages/CommodityDetailPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/PayOrderPage" // 疑似多出的
+    },
+    {
+      "component": {
+        "type": "CommodityList"
+      },
+      "event": "unknown",
+      "target": "pages/CommodityDetailPage" // 疑似多出的
+    }
+  ],
+  "pages/PayOrderPage": [],
+  "pages/SplashPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "unknown",
+      "target": "pages/MainPage" // 是否算一条边待定
+    }
+  ]
+}

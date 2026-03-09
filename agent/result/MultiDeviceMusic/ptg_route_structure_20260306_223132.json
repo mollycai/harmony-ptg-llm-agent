@@ -1,0 +1,22 @@
+{
+  "pages/Index": [],
+  "pages/Live": [],
+  "pages/MusicComment": [],
+  "pages/MusicList": [
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/PlayPage"
+    },
+    {
+      "component": {
+        "type": "Blank"
+      },
+      "event": "onClick",
+      "target": "pages/PlayPage"
+    }
+  ],
+  "pages/PlayPage": []
+}

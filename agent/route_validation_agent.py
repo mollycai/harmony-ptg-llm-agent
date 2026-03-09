@@ -2,14 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
 
-
-def _norm(p: str) -> str:
-    return (p or "").replace("\\", "/").strip()
-
-
-def _strip_ets(p: str) -> str:
-    t = _norm(p)
-    return t[:-4] if t.endswith(".ets") else t
+from agent.utils.route_utils import is_invalid_target, normalize_path, strip_ets
 
 
 def _strip_quotes(s: str) -> str:
@@ -28,7 +21,7 @@ def _edge_key(edge: Dict[str, Any]) -> Tuple[str, str, str]:
 
 class RouteValidationAgent:
     def __init__(self, *, main_pages: List[str]) -> None:
-        main_page_ids = [_strip_ets(_strip_quotes(str(p))) for p in (main_pages or []) if str(p).strip()]
+        main_page_ids = [strip_ets(_strip_quotes(str(p))) for p in (main_pages or []) if str(p).strip()]
         self.main_pages: List[str] = [p for p in main_page_ids if p]
         self._main_set = set(self.main_pages)
 
@@ -56,7 +49,7 @@ class RouteValidationAgent:
             return out, report
 
         for raw_src, raw_edges in ptg.items():
-            src = _strip_ets(_strip_quotes(_norm(str(raw_src))))
+            src = strip_ets(_strip_quotes(normalize_path(str(raw_src))))
             if not src:
                 continue
 
@@ -74,8 +67,8 @@ class RouteValidationAgent:
                 component_type = str(((e.get("component") or {}).get("type")) or e.get("component_type") or "unknown")
                 event = str(e.get("event") or "unknown")
                 target_raw = str(e.get("target") or "")
-                target = _strip_ets(_strip_quotes(_norm(target_raw)))
-                if not target:
+                target = strip_ets(_strip_quotes(normalize_path(target_raw)))
+                if is_invalid_target(target):
                     report["edges_dropped_empty_target"] += 1
                     continue
 

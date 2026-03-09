@@ -1,0 +1,54 @@
+{
+  "pages/CommodityDetailPage": [
+    {
+      "component": {
+        "type": "router.pushUrl"
+      },
+      "event": "onFinish",
+      "target": "pages/ConfirmOrderPage"
+    }
+  ],
+  "pages/ConfirmOrderPage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/PayOrderPage"
+    }
+  ],
+  "pages/MainPage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/ConfirmOrderPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClickItem",
+      "target": "pages/CommodityDetailPage"
+    }
+  ],
+  "pages/OrderDetailListPage": [
+    {
+      "component": {
+        "type": "ListItem"
+      },
+      "event": "onClick",
+      "target": "pages/PayOrderPage"
+    },
+    {
+      "component": {
+        "type": "CommodityList"
+      },
+      "event": "onClickItem",
+      "target": "pages/CommodityDetailPage"
+    }
+  ],
+  "pages/PayOrderPage": [],
+  "pages/SplashPage": []
+}

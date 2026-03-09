@@ -16,21 +16,16 @@ from agent.prompt.route_structure_prompt import SYSTEM_PROMPT, build_user_prompt
 from agent.tools.import_resolver import ImportResolver
 from agent.tools.project_reader import ProjectReader
 from agent.tools.route_constant_resolver import RouteConstantResolver
+# from agent.tools.route_edge_extractor import extract_deterministic_edges
+from agent.tools.route_tool_calling import RouteToolCallingResolver
+from agent.utils.llm_json import parse_llm_json_list
+from agent.utils.route_utils import is_invalid_target, normalize_path, strip_ets
 from llm_server import build_chat_model
 
 
-def _norm(p: str) -> str:
-    return (p or "").replace("\\", "/").strip()
-
-
 def _ensure_ets(p: str) -> str:
-    t = _norm(p)
+    t = normalize_path(p)
     return t if (not t or t.endswith(".ets")) else f"{t}.ets"
-
-
-def _strip_ets(p: str) -> str:
-    t = _norm(p)
-    return t[:-4] if t.endswith(".ets") else t
 
 
 def _safe_dir(name: str, fallback: str = "default") -> str:
@@ -40,26 +35,6 @@ def _safe_dir(name: str, fallback: str = "default") -> str:
     if re.fullmatch(r"(con|prn|aux|nul|com[1-9]|lpt[1-9])", s, flags=re.IGNORECASE):
         s = "_" + s
     return s
-
-
-def _parse_llm_json_list(text: str) -> List[Dict[str, Any]]:
-    t = (text or "").strip()
-    t = re.sub(r"^```(?:\s*json)?\s*\n?", "", t, flags=re.IGNORECASE)
-    t = re.sub(r"\n?```\s*$", "", t, flags=re.IGNORECASE).strip()
-    if not t:
-        return []
-    try:
-        v = json.loads(t)
-        return [x for x in v if isinstance(x, dict)] if isinstance(v, list) else []
-    except Exception:
-        m = re.search(r"(\[\s*{[\s\S]*?}\s*\])", t)
-        if not m:
-            return []
-        try:
-            v = json.loads(m.group(1))
-            return [x for x in v if isinstance(x, dict)] if isinstance(v, list) else []
-        except Exception:
-            return []
 
 
 @dataclass
@@ -105,6 +80,11 @@ class RouteStructureAgent:
             max_files=int(self.config.max_route_files),
             max_chars_per_file=int(self.config.max_route_file_chars),
         )
+        self.tool_calling_resolver = RouteToolCallingResolver(
+            llm=self.llm,
+            import_resolver=self.import_resolver,
+            route_const_resolver=self.route_const_resolver,
+        )
 
         self.dependency_graph: Dict[str, List[str]] = {}
         self._visited: Set[str] = set()
@@ -124,6 +104,14 @@ class RouteStructureAgent:
             out[alias] = str(p)
         return out
 
+    @staticmethod
+    def _is_readable_ets_file(file_path: str) -> bool:
+        p = Path(file_path)
+        try:
+            return p.exists() and p.is_file() and p.suffix.lower() == ".ets"
+        except Exception:
+            return False
+
     async def _analyze_file(
         self,
         *,
@@ -138,7 +126,7 @@ class RouteStructureAgent:
         if depth > int(self.config.max_depth):
             return
 
-        fp = _norm(str(file_path.resolve()))
+        fp = normalize_path(str(file_path.resolve()))
         if fp in self._visited:
             return
         self._visited.add(fp)
@@ -154,9 +142,11 @@ class RouteStructureAgent:
             current_file_path=str(file_path),
         )
         resolved_files = [str(x) for x in resolved_map.values()]
-        resolved_files = [f for f in resolved_files if self.reader.should_explore_file(f)]
+        resolved_files = [f for f in resolved_files if self._is_readable_ets_file(f)]
 
-        self.dependency_graph[_norm(str(file_path))] = [_norm(x) for x in resolved_files]
+        self.dependency_graph[normalize_path(str(file_path))] = [normalize_path(x) for x in resolved_files]
+
+        source_page = main_page_key
 
         print(f"[RouteStructureAgent] Reading & analyzing file: {str(file_path)}")
         user_prompt = build_user_prompt(
@@ -167,32 +157,61 @@ class RouteStructureAgent:
             resolved_import_files=resolved_files,
             route_constant_map=self.route_const_resolver.full_map,
         )
-        msg = await self.llm.ainvoke([("system", SYSTEM_PROMPT), ("user", user_prompt)])
-        edges = _parse_llm_json_list(str(getattr(msg, "content", "") or ""))
+        edges: List[Dict[str, Any]] = []
+        try:
+            msg = await self.llm.ainvoke([("system", SYSTEM_PROMPT), ("user", user_prompt)])
+            edges = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
+        except Exception as ex:
+            print(f"[RouteStructureAgent] LLM analyze failed, fallback to deterministic only: {ex}")
 
-        for e in edges:
+        supplement_edges = await self.tool_calling_resolver.supplement_edges(
+            file_path=str(file_path),
+            imports=imports,
+            resolved_imports=resolved_map,
+            llm_edges=edges,
+        )
+
+        # det_edges = extract_deterministic_edges(
+        #     code=code,
+        #     imports=imports,
+        #     resolved_imports=resolved_map,
+        #     reader=self.reader,
+        #     route_const_resolver=self.route_const_resolver,
+        # )
+        # merged_edges = [*edges, *supplement_edges, *det_edges]
+        merged_edges = [*edges, *supplement_edges]
+
+        for e in merged_edges:
             component_type = str(e.get("component_type") or "unknown")
-            event = str(e.get("event") or "unknown")
+            event = str(e.get("event") or "onClick")
             raw_target = str(e.get("target") or "").strip()
+            target_expr = str(e.get("target_expr") or raw_target).strip()
 
-            target = self.route_const_resolver.resolve_target(raw_target)
+            target = self.route_const_resolver.resolve_target_by_symbol(
+                target=raw_target,
+                target_expr=target_expr,
+                imports=imports,
+                resolved_imports=resolved_map,
+            )
+            if is_invalid_target(target):
+                continue
             if not target:
                 continue
 
             if self.memory.add_edge(
-                source_page=main_page_key,
+                source_page=source_page,
                 component_type=component_type,
                 event=event,
                 target=target,
             ):
-                print(f"Found route: {main_page_key} -> {target}")
+                print(f"Found route: {source_page} -> {target}")
 
         nested = self.import_resolver.find_nested_component_files(
             imports=imports,
             current_file_path=str(file_path),
         )
-        nested = [nf for nf in nested if self.reader.should_explore_file(nf)]
-        next_chain = [*chain, _norm(str(file_path))]
+        nested = [nf for nf in nested if self._is_readable_ets_file(nf)]
+        next_chain = [*chain, normalize_path(str(file_path))]
         for nf in nested:
             await self._analyze_file(
                 main_page_key=main_page_key,
@@ -205,7 +224,7 @@ class RouteStructureAgent:
     async def run(self) -> Dict[str, List[Dict[str, Any]]]:
         main_pages = ProjectReader.load_main_pages(self.config.main_pages_json_path)
         main_pages = [str(x) for x in (main_pages or []) if str(x).strip()]
-        main_page_ids = [_strip_ets(p) for p in main_pages]
+        main_page_ids = [strip_ets(p) for p in main_pages]
 
         self._main_page_ids = {p for p in main_page_ids if p}
         self.memory.init_from_main_pages(sorted(self._main_page_ids))
@@ -229,6 +248,15 @@ class RouteStructureAgent:
                 depth=0,
                 chain=[mp_id],
             )
+
+        unresolved_summary = self.import_resolver.get_unresolved_imports_summary(top_n=20)
+        if unresolved_summary:
+            print(
+                "[RouteStructureAgent] Unresolved imports summary (top 20): "
+                + json.dumps(unresolved_summary, ensure_ascii=False)
+            )
+        else:
+            print("[RouteStructureAgent] Unresolved imports summary: []")
 
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir = Path(self.config.output_dir) / _safe_dir(self.config.project_name)

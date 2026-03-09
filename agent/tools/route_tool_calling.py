@@ -1,0 +1,216 @@
+from __future__ import annotations
+
+import json
+from typing import Any, Dict, List
+
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.tools import StructuredTool
+from langchain_openai import ChatOpenAI
+
+from agent.tools.import_resolver import ImportResolver
+from agent.tools.route_constant_resolver import RouteConstantResolver
+from agent.utils.llm_json import parse_llm_json_list
+from agent.utils.route_utils import is_invalid_target, normalize_path, strip_ets
+
+
+def target_looks_resolved(target: str) -> bool:
+    """判断 target 是否已被解析为有效页面路径。"""
+    t = normalize_path(strip_ets(target or ""))
+    return bool(t) and ("/" in t) and (not is_invalid_target(t))
+
+
+class RouteToolCallingResolver:
+    """对 LLM 初次抽取的未解析边执行一次工具调用补解析。"""
+
+    def __init__(
+        self,
+        *,
+        llm: ChatOpenAI,
+        import_resolver: ImportResolver,
+        route_const_resolver: RouteConstantResolver,
+    ) -> None:
+        self.llm = llm
+        self.import_resolver = import_resolver
+        self.route_const_resolver = route_const_resolver
+
+    async def supplement_edges(
+        self,
+        *,
+        file_path: str,
+        imports: Dict[str, str],
+        resolved_imports: Dict[str, str],
+        llm_edges: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        unresolved: List[Dict[str, Any]] = []
+        for e in (llm_edges or []):
+            raw_target = str(e.get("target") or "").strip()
+            target_expr = str(e.get("target_expr") or raw_target).strip()
+            resolved = self.route_const_resolver.resolve_target_by_symbol(
+                target=raw_target,
+                target_expr=target_expr,
+                imports=imports,
+                resolved_imports=resolved_imports,
+            )
+            if target_looks_resolved(resolved) or not target_expr:
+                continue
+            unresolved.append(
+                {
+                    "component_type": str(e.get("component_type") or "unknown"),
+                    "event": str(e.get("event") or "onClick"),
+                    "target": raw_target,
+                    "target_expr": target_expr,
+                }
+            )
+
+        if not unresolved:
+            return []
+
+        print(f"[RouteStructureAgent] Tool-calling supplement start: unresolved_edges={len(unresolved)}")
+        tools = self._build_tools(file_path=file_path, imports=imports, resolved_imports=resolved_imports)
+        tool_llm = self.llm.bind_tools(tools)
+
+        messages: List[Any] = [
+            SystemMessage(
+                content=(
+                    "你是路由补解析助手。你会根据给定 unresolved 边，调用工具解析路径。\n"
+                    "最终仅输出 JSON 数组，每项字段：component_type,event,target,target_expr。"
+                )
+            ),
+            HumanMessage(
+                content=json.dumps(
+                    {
+                        "file_path": file_path,
+                        "imports": imports,
+                        "resolved_imports": resolved_imports,
+                        "unresolved_edges": unresolved,
+                    },
+                    ensure_ascii=False,
+                )
+            ),
+        ]
+
+        final_text = "[]"
+        for _ in range(4):
+            ai_msg = await tool_llm.ainvoke(messages)
+            if not isinstance(ai_msg, AIMessage):
+                final_text = str(getattr(ai_msg, "content", "") or "[]")
+                break
+            if not ai_msg.tool_calls:
+                final_text = str(ai_msg.content or "[]")
+                break
+
+            messages.append(ai_msg)
+            for tc in ai_msg.tool_calls:
+                out = self._run_tool_call(
+                    tc=tc,
+                    file_path=file_path,
+                    imports=imports,
+                    resolved_imports=resolved_imports,
+                )
+                messages.append(ToolMessage(content=str(out), tool_call_id=str(tc.get("id") or "")))
+
+        patched = parse_llm_json_list(final_text)
+        print(f"[RouteStructureAgent] Tool-calling supplement done: patched_edges={len(patched)}")
+        return patched
+
+    def _build_tools(
+        self,
+        *,
+        file_path: str,
+        imports: Dict[str, str],
+        resolved_imports: Dict[str, str],
+    ) -> List[StructuredTool]:
+        """构造供 LLM 调用的最小工具集。"""
+
+        def _tool_resolve_import_path(module_path: str, symbol_alias: str = "") -> str:
+            return self._resolve_import_path(
+                module_path=module_path,
+                symbol_alias=symbol_alias,
+                file_path=file_path,
+            )
+
+        def _tool_resolve_target_expr(target_expr: str) -> str:
+            return self._resolve_target_expr(
+                target_expr=target_expr,
+                imports=imports,
+                resolved_imports=resolved_imports,
+            )
+
+        return [
+            StructuredTool.from_function(
+                func=_tool_resolve_import_path,
+                name="resolve_import_path",
+                description="解析 import 路径或符号别名，返回对应的 .ets 文件绝对路径。",
+            ),
+            StructuredTool.from_function(
+                func=_tool_resolve_target_expr,
+                name="resolve_target_expr",
+                description="解析路由 target_expr，返回页面路径（例如 pages/xx）。",
+            ),
+        ]
+
+    def _resolve_import_path(self, *, module_path: str, symbol_alias: str, file_path: str) -> str:
+        """工具实现：解析 import 到实际文件。"""
+        mp = normalize_path(module_path)
+        sa = (symbol_alias or "").strip()
+        if not mp:
+            return ""
+        try:
+            out = self.import_resolver.resolve_import_path(
+                import_path=mp,
+                current_file_path=file_path,
+                symbol_alias=sa,
+            )
+            return str(out or "")
+        except Exception:
+            return ""
+
+    def _resolve_target_expr(
+        self,
+        *,
+        target_expr: str,
+        imports: Dict[str, str],
+        resolved_imports: Dict[str, str],
+    ) -> str:
+        """工具实现：解析 target_expr 到页面路径。"""
+        te = (target_expr or "").strip()
+        if not te:
+            return ""
+        try:
+            out = self.route_const_resolver.resolve_target_by_symbol(
+                target=te,
+                target_expr=te,
+                imports=imports,
+                resolved_imports=resolved_imports,
+            )
+            return str(out or "")
+        except Exception:
+            return ""
+
+    def _run_tool_call(
+        self,
+        *,
+        tc: Dict[str, Any],
+        file_path: str,
+        imports: Dict[str, str],
+        resolved_imports: Dict[str, str],
+    ) -> str:
+        """执行一次模型工具调用。"""
+        name = str(tc.get("name") or "")
+        args = tc.get("args") or {}
+        try:
+            if name == "resolve_import_path":
+                return self._resolve_import_path(
+                    module_path=str(args.get("module_path") or ""),
+                    symbol_alias=str(args.get("symbol_alias") or ""),
+                    file_path=file_path,
+                )
+            if name == "resolve_target_expr":
+                return self._resolve_target_expr(
+                    target_expr=str(args.get("target_expr") or ""),
+                    imports=imports,
+                    resolved_imports=resolved_imports,
+                )
+        except Exception:
+            return ""
+        return ""

@@ -19,7 +19,8 @@ Output schema (JSON array):
   {
     "component_type": "string",
     "event": "string",
-    "target": "string"
+    "target": "string",
+    "target_expr": "string"
   }
 ]
 
@@ -30,6 +31,12 @@ Field rules:
   - Prefer an actual main page path string (e.g., pages/xxx/DetailPage.ets).
   - If the code uses an identifier like RoutePath.TopicDetailPage, and the Route Constant Map contains it, output the resolved string value.
   - If it cannot be resolved, output the identifier text as-is.
+  - NEVER output back-navigation expression as target (e.g., router.back(), back()).
+  - NEVER output "unknown" as target.
+- target_expr:
+  - The original expression in code used as navigation destination (e.g., RoutePath.TopicDetailPage, item.url, "pages/Index").
+  - If target is a direct string literal, target_expr can be the same value.
+- For back navigation without explicit destination, return [] for that call.
 - If there is no navigation, return [].
 """
 
