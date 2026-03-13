@@ -5,8 +5,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Optional
 
+from llm_usage import extract_token_usage
 from llm.prompt.prompt import GLOBAL_PROMPT, RESTRICTIVE_PROMPT, TASK_PROMPT
 from llm.prompt.preprocess_prompt import get_preprocess_prompt
+from langchain_openai import ChatOpenAI
 
 
 # 从文本中提取JSON代码块
@@ -191,13 +193,18 @@ async def run_long_prompt_conversation(options: dict) -> dict[str, Any]:
     full_prompt_path = write_full_prompt_to_file(full_prompt, project_name=project_name, model=model)
 
     resp = await llm.ainvoke(messages)
+    prompt_tokens, completion_tokens, total_tokens = extract_token_usage(resp)
     raw = str(getattr(resp, "content", "") or "")
     saved = write_ptg_result_to_file(raw, project_name=project_name, model_name=model)
 
     return {
         "completionText": saved["completionText"],
         "fullPromptPath": full_prompt_path,
-        "fullPromptLength": len(full_prompt),
         "messageCount": len(messages),
+        "tokenUsage": {
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens,
+        },
         "ptgOutputPath": saved["ptgOutputPath"],
     }

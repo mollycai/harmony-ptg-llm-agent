@@ -4,6 +4,13 @@ LLM_CONFIG = {
         "apiKeyEnv": "DEEPSEEK_API_KEY",
         "model": "deepseek-chat",
         "preprocessModel": "deepseek-chat",
+        "chatOptions": {
+            "temperature": 0,
+            "top_p": 1,
+            "max_tokens": 8192,
+            "timeout": 180,
+            "max_retries": 2,
+        },
     },
     "glm": {
         "baseURL": "https://open.bigmodel.cn/api/paas/v4/",

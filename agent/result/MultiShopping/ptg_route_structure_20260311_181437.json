@@ -2,9 +2,9 @@
   "pages/CommodityDetailPage": [
     {
       "component": {
-        "type": "router.pushUrl"
+        "type": "__Common__"
       },
-      "event": "onFinish",
+      "event": "onClick",
       "target": "pages/ConfirmOrderPage"
     }
   ],
@@ -20,6 +20,27 @@
   "pages/MainPage": [
     {
       "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/CommodityDetailPage"
+    },
+    {
+      "component": {
+        "type": "IconButton"
+      },
+      "event": "onClick",
+      "target": "pages/OrderListPage"
+    },
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/OrderListPage"
+    },
+    {
+      "component": {
         "type": "Button"
       },
       "event": "onClick",
@@ -27,7 +48,7 @@
     },
     {
       "component": {
-        "type": "__Common__"
+        "type": "CommodityList"
       },
       "event": "onClickItem",
       "target": "pages/CommodityDetailPage"
@@ -36,7 +57,7 @@
   "pages/OrderDetailListPage": [
     {
       "component": {
-        "type": "ListItem"
+        "type": "__Common__"
       },
       "event": "onClick",
       "target": "pages/PayOrderPage"
@@ -50,5 +71,13 @@
     }
   ],
   "pages/PayOrderPage": [],
-  "pages/SplashPage": []
+  "pages/SplashPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onTimeout",
+      "target": "pages/MainPage"
+    }
+  ]
 }

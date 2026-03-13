@@ -1,5 +1,13 @@
 {
-  "pages/Index": [],
+  "pages/Index": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/PlayPage"
+    }
+  ],
   "pages/Live": [],
   "pages/MusicComment": [
     {
@@ -7,32 +15,39 @@
         "type": "Image"
       },
       "event": "onClick",
-      "target": "RouterUrlConstants.MUSIC_PLAY"
+      "target": "pages/PlayPage"
     }
   ],
   "pages/MusicList": [
     {
       "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick",
+      "target": "pages/MusicComment"
+    },
+    {
+      "component": {
         "type": "Row"
       },
       "event": "onClick",
-      "target": "RouterUrlConstants.MUSIC_PLAY"
+      "target": "pages/PlayPage"
     },
     {
       "component": {
         "type": "Blank"
       },
       "event": "onClick",
-      "target": "RouterUrlConstants.MUSIC_PLAY"
+      "target": "pages/PlayPage"
     }
   ],
   "pages/PlayPage": [
     {
       "component": {
-        "type": "Image"
+        "type": "__Common__"
       },
       "event": "onClick",
-      "target": "router.back()"
+      "target": "pages/MusicComment"
     }
   ]
 }

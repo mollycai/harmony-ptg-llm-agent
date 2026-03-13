@@ -2,13 +2,20 @@
   "pages/ForgetPasswordPage": [
     {
       "component": {
-        "type": "Text"
+        "type": "__Common__"
       },
       "event": "onClick",
       "target": "pages/ResetPasswordPage"
     }
   ],
   "pages/IndexPage": [
+    {
+      "component": {
+        "type": "MovieItemComponent" // 组件错误
+      },
+      "event": "onClick",
+      "target": "pages/MovieDetailPage"
+    },
     {
       "component": {
         "type": "Row"
@@ -29,14 +36,14 @@
       "component": {
         "type": "__Common__"
       },
-      "event": "unknown",
+      "event": "onAppear", // 事件错误
       "target": "pages/IndexPage"
     },
     {
       "component": {
         "type": "__Common__"
       },
-      "event": "unknown",
+      "event": "onAppear", // 事件错误
       "target": "pages/LoginPage"
     }
   ],
@@ -45,7 +52,7 @@
       "component": {
         "type": "Text"
       },
-      "event": "onClick",
+      "event": "onClick", // 事件错误
       "target": "pages/MusicIndexPage"
     },
     {
@@ -66,7 +73,7 @@
   "pages/MovieDetailPage": [
     {
       "component": {
-        "type": "Row"
+        "type": "Image" // 组件错误
       },
       "event": "onClick",
       "target": "pages/MoviePlayPage"
@@ -76,7 +83,7 @@
   "pages/MovieSearchPage": [
     {
       "component": {
-        "type": "MovieItemComponent"
+        "type": "MovieItemComponent" // 组件错误
       },
       "event": "onClick",
       "target": "pages/MovieDetailPage"
@@ -85,7 +92,7 @@
   "pages/MovieUserPage": [
     {
       "component": {
-        "type": "Button"
+        "type": "__Common__"
       },
       "event": "onClick",
       "target": "pages/MovieLoginPage"
@@ -94,23 +101,16 @@
   "pages/RegisterPage": [
     {
       "component": {
-        "type": "Text"
+        "type": "__Common__"
       },
       "event": "onClick",
       "target": "pages/IndexPage"
-    },
-    {
-      "component": {
-        "type": "Image"
-      },
-      "event": "onClick",
-      "target": "back"
     }
   ],
   "pages/ResetPasswordPage": [
     {
       "component": {
-        "type": "Text"
+        "type": "__Common__"
       },
       "event": "onClick",
       "target": "pages/IndexPage"

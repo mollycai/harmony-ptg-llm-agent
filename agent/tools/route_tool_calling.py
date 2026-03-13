@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import StructuredTool
 from langchain_openai import ChatOpenAI
+from llm_usage import extract_token_usage
 
 from agent.tools.import_resolver import ImportResolver
 from agent.tools.route_constant_resolver import RouteConstantResolver
@@ -28,10 +29,22 @@ class RouteToolCallingResolver:
         llm: ChatOpenAI,
         import_resolver: ImportResolver,
         route_const_resolver: RouteConstantResolver,
+        token_reporter: Optional[Callable[[str, int, int, int], None]] = None,
     ) -> None:
         self.llm = llm
         self.import_resolver = import_resolver
         self.route_const_resolver = route_const_resolver
+        self._token_reporter = token_reporter
+
+    def _report_usage(self, *, stage: str, msg: Any) -> None:
+        """上报本次 LLM 交互 token。"""
+        p, c, t = extract_token_usage(msg)
+        if p <= 0 and c <= 0 and t <= 0:
+            return
+        if self._token_reporter is not None:
+            self._token_reporter(stage, p, c, t)
+        else:
+            print(f"[RouteStructureAgent] Token usage | {stage}: prompt={p}, completion={c}, total={t}")
 
     async def supplement_edges(
         self,
@@ -93,6 +106,7 @@ class RouteToolCallingResolver:
         final_text = "[]"
         for _ in range(4):
             ai_msg = await tool_llm.ainvoke(messages)
+            self._report_usage(stage="tool_calling", msg=ai_msg)
             if not isinstance(ai_msg, AIMessage):
                 final_text = str(getattr(ai_msg, "content", "") or "[]")
                 break

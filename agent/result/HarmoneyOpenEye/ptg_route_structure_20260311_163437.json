@@ -69,14 +69,14 @@
       "component": {
         "type": "__Common__"
       },
-      "event": "aboutToAppear",
+      "event": "onTimeout",
       "target": "pages/MainPage"
     }
   ],
   "pages/categoryDetail/CategoryDetailPage": [
     {
       "component": {
-        "type": "ListItem"
+        "type": "HomeListItemComponent"
       },
       "event": "onClick",
       "target": "pages/commonDetail/DetailPage"

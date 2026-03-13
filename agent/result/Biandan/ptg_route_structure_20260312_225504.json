@@ -2,17 +2,10 @@
   "pages/Index": [
     {
       "component": {
-        "type": "router"
-      },
-      "event": "unknown",
-      "target": "pages/guide"
-    },
-    {
-      "component": {
-        "type": "Stack"
+        "type": "__Common__"
       },
       "event": "onClick",
-      "target": "pages/setting"
+      "target": "pages/guide"
     },
     {
       "component": {
@@ -36,11 +29,26 @@
       "target": "pages/about"
     }
   ],
-  "pages/about": [],
+  "pages/about": [
+    {
+      "component": {
+        "type": "Column"
+      },
+      "event": "onClick",
+      "target": "pages/guide"
+    },
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/illustrate"
+    }
+  ],
   "pages/guide": [
     {
       "component": {
-        "type": "Button"
+        "type": "__Common__"
       },
       "event": "onClick",
       "target": "pages/Index"
@@ -51,13 +59,6 @@
       },
       "event": "onClick",
       "target": "pages/illustrate"
-    },
-    {
-      "component": {
-        "type": "Stepper"
-      },
-      "event": "onFinish",
-      "target": "pages/Index"
     }
   ],
   "pages/help": [],

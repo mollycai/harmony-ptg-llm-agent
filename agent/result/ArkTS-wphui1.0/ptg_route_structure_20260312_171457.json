@@ -8,13 +8,5 @@
       "target": "pages/components/CardDetailPage"
     }
   ],
-  "pages/components/CardDetailPage": [
-    {
-      "component": {
-        "type": "Image"
-      },
-      "event": "onClick",
-      "target": "router.back"
-    }
-  ]
+  "pages/components/CardDetailPage": []
 }

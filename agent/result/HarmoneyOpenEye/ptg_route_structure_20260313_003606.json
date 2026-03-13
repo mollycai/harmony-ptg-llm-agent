@@ -69,24 +69,17 @@
       "component": {
         "type": "__Common__"
       },
-      "event": "aboutToAppear",
+      "event": "onTimeout",
       "target": "pages/MainPage"
     }
   ],
   "pages/categoryDetail/CategoryDetailPage": [
     {
       "component": {
-        "type": "ListItem"
+        "type": "HomeListItemComponent" // 组件错误
       },
       "event": "onClick",
       "target": "pages/commonDetail/DetailPage"
-    },
-    {
-      "component": {
-        "type": "Image"
-      },
-      "event": "onClick",
-      "target": "back"
     }
   ],
   "pages/commonDetail/DetailPage": [],
@@ -97,13 +90,6 @@
       },
       "event": "onClick",
       "target": "pages/categoryDetail/CategoryDetailPage"
-    },
-    {
-      "component": {
-        "type": "Image"
-      },
-      "event": "onClick",
-      "target": "router.back"
     },
     {
       "component": {
@@ -123,46 +109,14 @@
   "pages/hot/CoordinatePage": [
     {
       "component": {
-        "type": "ListItem"
+        "type": "HomeListItemComponent" // 组件错误
       },
       "event": "onClick",
       "target": "pages/commonDetail/DetailPage"
     }
   ],
-  "pages/test/TestHorizontalPage": [
-    {
-      "component": {
-        "type": "Image"
-      },
-      "event": "onClick",
-      "target": "back"
-    }
-  ],
-  "pages/test/TestHorizontalPage2": [
-    {
-      "component": {
-        "type": "Image"
-      },
-      "event": "onClick",
-      "target": "router.back"
-    }
-  ],
-  "pages/test/TestPage": [
-    {
-      "component": {
-        "type": "Image"
-      },
-      "event": "onClick",
-      "target": "router.back"
-    }
-  ],
-  "pages/topicDetail/TopicDetailPage": [
-    {
-      "component": {
-        "type": "Image"
-      },
-      "event": "onClick",
-      "target": "back"
-    }
-  ]
+  "pages/test/TestHorizontalPage": [],
+  "pages/test/TestHorizontalPage2": [],
+  "pages/test/TestPage": [],
+  "pages/topicDetail/TopicDetailPage": []
 }

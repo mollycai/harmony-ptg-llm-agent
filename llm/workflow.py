@@ -9,7 +9,7 @@ if str(_REPO_ROOT) not in sys.path:
 from dotenv import load_dotenv
 
 from config import get_llm_config, get_project_config
-from llm.llm_server import build_chat_model
+from llm_server import build_chat_model
 from llm.utils import run_long_prompt_conversation
 
 # 解析命令行参数，获取LLM提供程序和项目键
@@ -41,7 +41,15 @@ async def run(provider: str, project_key: str) -> None:
     )
 
     if result.get("fullPromptPath"):
-        print("完整提示已保存到:", result["fullPromptPath"], "长度：", result["fullPromptLength"])
+        print("完整提示已保存到:", result["fullPromptPath"])
+    token_usage = result.get("tokenUsage") or {}
+    if token_usage:
+        print(
+            "Token usage:",
+            f"prompt={int(token_usage.get('prompt_tokens') or 0)},",
+            f"completion={int(token_usage.get('completion_tokens') or 0)},",
+            f"total={int(token_usage.get('total_tokens') or 0)}",
+        )
     print(result["completionText"])
 
 

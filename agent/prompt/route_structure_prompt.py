@@ -10,7 +10,7 @@ Goal: Given ONE ArkTS/ETS file (and small structured context), extract ALL navig
 
 Hard requirements:
 - Use ONLY evidence from the provided code and provided context.
-- Identify explicit and implicit navigation calls (router.push / router.replace / pushUrl / replaceUrl / back / Navigation.* / NavPathStack.* / wrappers).
+- Identify explicit and implicit navigation calls (e.g., router.push / router.replace / pushUrl / replaceUrl / Navigation.* / NavPathStack.* / wrappers).
 - Resolve route-constant identifiers when possible, using the provided Route Constant Map.
 - Return STRICT JSON only (no markdown, no code fences, no extra text).
 
@@ -49,6 +49,72 @@ Field rules:
   - target is not a back-navigation expression and not "unknown".
 """
 
+CENSUS_SYSTEM_PROMPT = """Role: You are a route-call census assistant for HarmonyOS ArkTS/ETS projects.
+
+Goal: From the given code, list EVERY router/navigation call occurrence. Do not convert to PTG edges.
+
+Hard requirements:
+- Return STRICT JSON array only.
+- Do not skip calls. Prefer over-reporting to under-reporting.
+- Include only direct evidence from code.
+- Do NOT infer PTG edges in this step.
+- Keep each snippet short but must include the real invocation (e.g., router.pushUrl(...)).
+
+Output schema (JSON array):
+[
+  {
+    "call_id": "string",
+    "method": "string",
+    "line_hint": "string",
+    "snippet": "string"
+  }
+]
+
+Field rules:
+- method: one of pushUrl, replaceUrl, push, replace, back, Navigation, NavPathStack, other_router.
+- line_hint: a short hint like "around line 128".
+- snippet: short original code snippet containing the call.
+- call_id: stable id inside this chunk, e.g., c1, c2, c3.
+- Do not fabricate line_hint/snippet; if uncertain, still provide best nearby evidence from code text.
+"""
+
+COVERAGE_RETRY_SYSTEM_PROMPT = """Role: You are a route edge recovery assistant for HarmonyOS ArkTS/ETS projects.
+
+Goal: Given router call census items that may have been missed, recover PTG edges.
+
+Hard requirements:
+- Return STRICT JSON array only.
+- For each provided NON-back census call, try to output one edge.
+- Prefer resolving target to a page-like destination (e.g., pages/xxx or RouteConst.xxx mapped by context).
+- Do not output back-navigation as target.
+- If a call only yields runtime values and cannot map to a concrete page-like destination, SKIP that call.
+
+Output schema (JSON array):
+[
+  {
+    "call_id": "string",
+    "component_type": "string",
+    "event": "string",
+    "target": "string",
+    "target_expr": "string"
+  }
+]
+
+Field rules:
+- call_id:
+  - Must come from input `census_calls`.
+  - Do not output edges with unknown/new call_id.
+- component_type: component name or "__Common__" if unclear.
+- event: onXxx; if unclear use onClick.
+- target:
+  - Must be page-like target only.
+  - Forbidden values/forms: "url", "uri", "target", "name", "routeName",
+    "router.getParams(...)", "getParams(...)", "params[...]",
+    and any back-navigation expression.
+- target_expr: original destination expression in code.
+- If target violates forbidden forms, do not output that edge.
+"""
+
 
 def build_user_prompt(
     *,
@@ -74,6 +140,71 @@ def build_user_prompt(
 
     return (
         "Task: Extract navigation transitions from the given ArkTS/ETS file.\n"
+        "Return ONLY a JSON array.\n\n"
+        "Context (JSON):\n"
+        f"{json.dumps(context_obj, ensure_ascii=False)}\n\n"
+        "Source code:\n<code>\n"
+        f"{code}\n"
+        "</code>\n"
+    )
+
+
+def build_census_user_prompt(
+    *,
+    file_path: str,
+    code: str,
+    chunk_index: int,
+    chunk_total: int,
+    dependency_chain: Sequence[str] | None = None,
+    resolved_import_files: Sequence[str] | None = None,
+) -> str:
+    chain = [str(x) for x in (dependency_chain or []) if str(x).strip()]
+    imports = [str(x) for x in (resolved_import_files or []) if str(x).strip()]
+    context_obj = {
+        "file_path": file_path,
+        "chunk_index": int(chunk_index),
+        "chunk_total": int(chunk_total),
+        "dependency_chain": chain,
+        "resolved_import_files": imports,
+    }
+    return (
+        "Task: Build a router/navigation call census for this code chunk.\n"
+        "Return ONLY a JSON array.\n\n"
+        "Context (JSON):\n"
+        f"{json.dumps(context_obj, ensure_ascii=False)}\n\n"
+        "Source code:\n<code>\n"
+        f"{code}\n"
+        "</code>\n"
+    )
+
+
+def build_coverage_retry_user_prompt(
+    *,
+    file_path: str,
+    code: str,
+    main_pages: Iterable[str],
+    dependency_chain: Sequence[str] | None = None,
+    resolved_import_files: Sequence[str] | None = None,
+    route_constant_map: Mapping[str, str] | None = None,
+    census_calls: Sequence[Mapping[str, str]] | None = None,
+) -> str:
+    pages = [_p for _p in (main_pages or []) if str(_p).strip()]
+    chain = [str(x) for x in (dependency_chain or []) if str(x).strip()]
+    imports = [str(x) for x in (resolved_import_files or []) if str(x).strip()]
+    rc_map = dict(route_constant_map or {})
+    calls = [dict(x) for x in (census_calls or []) if isinstance(x, Mapping)]
+
+    context_obj = {
+        "file_path": file_path,
+        "dependency_chain": chain,
+        "resolved_import_files": imports,
+        "main_pages": pages,
+        "route_constant_map": rc_map,
+        "census_calls": calls,
+    }
+
+    return (
+        "Task: Recover missing navigation edges based on the provided census calls.\n"
         "Return ONLY a JSON array.\n\n"
         "Context (JSON):\n"
         f"{json.dumps(context_obj, ensure_ascii=False)}\n\n"
