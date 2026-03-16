@@ -12,10 +12,11 @@ import asyncio
 import json
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, TypedDict
 
 from langchain_openai import ChatOpenAI
 from llm_usage import extract_token_usage
@@ -36,6 +37,15 @@ from agent.tools.route_tool_calling import RouteToolCallingResolver
 from agent.utils.llm_json import parse_llm_json_list
 from agent.utils.route_utils import is_invalid_target, normalize_path, strip_ets
 from llm_server import build_chat_model
+
+try:
+    from langgraph.graph import END, StateGraph
+
+    _HAS_LANGGRAPH = True
+except Exception:
+    END = None
+    StateGraph = None
+    _HAS_LANGGRAPH = False
 
 _ACTIONABLE_ROUTER_CALL_RE = re.compile(
     r"""\brouter\s*\.\s*(?:pushUrl|replaceUrl|push|replace|back)\s*\(""",
@@ -98,6 +108,66 @@ class RouteStructureAgentConfig:
     chunk_overlap_lines: int = 50
     enable_router_census_probe: bool = True
     llm_skip_dirs: Optional[List[str]] = None
+    max_llm_calls: int = 3000
+    token_budget_total: int = 0
+
+
+class RouteState(str, Enum):
+    """RouteStructureAgent 的状态机状态。"""
+
+    INIT = "INIT"
+    DISCOVER_MAIN_PAGE = "DISCOVER_MAIN_PAGE"
+    EXPAND_IMPORTS = "EXPAND_IMPORTS"
+    ADMISSION_CHECK = "ADMISSION_CHECK"
+    ROUTER_CENSUS = "ROUTER_CENSUS"
+    EDGE_EXTRACT = "EDGE_EXTRACT"
+    GAP_DECISION = "GAP_DECISION"
+    EDGE_RECOVER = "EDGE_RECOVER"
+    NORMALIZE_AND_FILTER = "NORMALIZE_AND_FILTER"
+    WRITE_PTG = "WRITE_PTG"
+    FINALIZE = "FINALIZE"
+
+
+@dataclass
+class AgentGoal:
+    """Agent 目标与预算约束。"""
+
+    maximize_recall: bool = True
+    minimize_hallucination: bool = True
+    max_llm_calls: int = 3000
+    token_budget_total: int = 0
+
+
+@dataclass
+class StateContext:
+    """运行时状态上下文，用于可观测性与回放。"""
+
+    current_state: str = RouteState.INIT.value
+    current_main_page: str = ""
+    current_file: str = ""
+    llm_calls: int = 0
+    token_prompt: int = 0
+    token_completion: int = 0
+    token_total: int = 0
+    coverage_calls: int = 0
+    extracted_edges: int = 0
+    recovered_edges: int = 0
+    invalid_target_dropped: int = 0
+    decision_trace: List[Dict[str, Any]] = field(default_factory=list)
+
+
+class RouteGraphState(TypedDict, total=False):
+    """LangGraph 运行时状态。"""
+
+    main_pages: List[str]
+    main_page_ids: List[str]
+    main_idx: int
+    current_main_page_raw: str
+    current_main_page_id: str
+    current_main_page_file: str
+    skip_current: bool
+    done: bool
+    ptg: Dict[str, List[Dict[str, Any]]]
 
 
 class RouteStructureAgent:
@@ -143,10 +213,52 @@ class RouteStructureAgent:
         self._visited: Set[str] = set()
         self._count = 0
         self._main_page_ids: Set[str] = set()
+        self.goal = AgentGoal(
+            max_llm_calls=int(self.config.max_llm_calls),
+            token_budget_total=int(self.config.token_budget_total),
+        )
+        self.state_ctx = StateContext()
         self._token_prompt = 0
         self._token_completion = 0
         self._token_total = 0
         self._token_calls = 0
+
+    def _set_state(self, state: RouteState, *, main_page: str = "", file_path: str = "") -> None:
+        """状态切换并打印运行日志。"""
+        self.state_ctx.current_state = state.value
+        if main_page:
+            self.state_ctx.current_main_page = main_page
+        if file_path:
+            self.state_ctx.current_file = normalize_path(file_path)
+        print(
+            "[RouteStructureAgent] State => "
+            f"{self.state_ctx.current_state} | main_page={self.state_ctx.current_main_page or '-'} "
+            f"| file={self.state_ctx.current_file or '-'}"
+        )
+
+    def _record_decision(self, *, state: RouteState, action: str, detail: Dict[str, Any]) -> None:
+        """记录局部自主决策轨迹（用于复盘与论文分析）。"""
+        row = {
+            "state": state.value,
+            "action": action,
+            "detail": detail,
+        }
+        self.state_ctx.decision_trace.append(row)
+        # 限制轨迹长度，避免内存膨胀。
+        if len(self.state_ctx.decision_trace) > 500:
+            self.state_ctx.decision_trace = self.state_ctx.decision_trace[-500:]
+        print(
+            "[RouteStructureAgent] Decision: "
+            + json.dumps(row, ensure_ascii=False)
+        )
+
+    def _llm_budget_exhausted(self) -> bool:
+        """检查是否触达 LLM 调用预算。"""
+        if self.goal.max_llm_calls > 0 and self._token_calls >= self.goal.max_llm_calls:
+            return True
+        if self.goal.token_budget_total > 0 and self._token_total >= self.goal.token_budget_total:
+            return True
+        return False
 
     def _record_token_usage_numbers(self, stage: str, prompt: int, completion: int, total: int) -> None:
         """记录并打印一次 LLM 交互 token。"""
@@ -154,6 +266,10 @@ class RouteStructureAgent:
         self._token_prompt += int(prompt or 0)
         self._token_completion += int(completion or 0)
         self._token_total += int(total or 0)
+        self.state_ctx.llm_calls = self._token_calls
+        self.state_ctx.token_prompt = self._token_prompt
+        self.state_ctx.token_completion = self._token_completion
+        self.state_ctx.token_total = self._token_total
         print(
             f"[RouteStructureAgent] Token usage | {stage}: "
             f"prompt={int(prompt or 0)}, completion={int(completion or 0)}, total={int(total or 0)}"
@@ -163,6 +279,30 @@ class RouteStructureAgent:
         """从 LangChain 消息对象提取并记录 token。"""
         prompt, completion, total = extract_token_usage(msg)
         self._record_token_usage_numbers(stage, prompt, completion, total)
+
+    async def _ainvoke_with_state(
+        self,
+        *,
+        stage: str,
+        state: RouteState,
+        messages: List[tuple[str, str]],
+    ) -> Any:
+        """带状态与预算检查的统一 LLM 调用入口。"""
+        if self._llm_budget_exhausted():
+            self._record_decision(
+                state=state,
+                action="skip_llm_by_budget",
+                detail={
+                    "max_llm_calls": self.goal.max_llm_calls,
+                    "token_budget_total": self.goal.token_budget_total,
+                    "llm_calls": self._token_calls,
+                    "token_total": self._token_total,
+                },
+            )
+            raise RuntimeError("LLM budget exhausted")
+        msg = await self.llm.ainvoke(messages)
+        self._record_token_usage(stage=stage, msg=msg)
+        return msg
 
     def _normalize_import_alias_map(self, raw_map: Optional[Dict[str, str]]) -> Dict[str, str]:
         """
@@ -327,6 +467,7 @@ class RouteStructureAgent:
         for idx, chunk in enumerate(chunks, start=1):
             if not self._has_router_hints(chunk):
                 continue
+            self._set_state(RouteState.EDGE_EXTRACT, file_path=file_key)
             if len(chunks) > 1:
                 print(f"[RouteStructureAgent] Analyze chunk {idx}/{len(chunks)}: {file_key}")
 
@@ -341,8 +482,11 @@ class RouteStructureAgent:
             edges: List[Dict[str, Any]] = []
             print(f"[RouteStructureAgent] LLM Reading & analyzing file: {file_key}")
             try:
-                msg = await self.llm.ainvoke([("system", SYSTEM_PROMPT), ("user", user_prompt)])
-                self._record_token_usage(stage="extract", msg=msg)
+                msg = await self._ainvoke_with_state(
+                    stage="extract",
+                    state=RouteState.EDGE_EXTRACT,
+                    messages=[("system", SYSTEM_PROMPT), ("user", user_prompt)],
+                )
                 edges = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
             except Exception as ex:
                 print(f"[RouteStructureAgent] LLM analyze failed: {ex}")
@@ -388,6 +532,7 @@ class RouteStructureAgent:
         for idx, chunk in enumerate(chunks, start=1):
             if not self._has_router_hints(chunk):
                 continue
+            self._set_state(RouteState.ROUTER_CENSUS, file_path=file_key)
             user_prompt = build_census_user_prompt(
                 file_path=file_key,
                 code=chunk,
@@ -397,8 +542,11 @@ class RouteStructureAgent:
                 resolved_import_files=resolved_files,
             )
             try:
-                msg = await self.llm.ainvoke([("system", CENSUS_SYSTEM_PROMPT), ("user", user_prompt)])
-                self._record_token_usage(stage="census", msg=msg)
+                msg = await self._ainvoke_with_state(
+                    stage="census",
+                    state=RouteState.ROUTER_CENSUS,
+                    messages=[("system", CENSUS_SYSTEM_PROMPT), ("user", user_prompt)],
+                )
                 rows = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
             except Exception as ex:
                 print(f"[RouteStructureAgent] Census failed: {ex}")
@@ -408,6 +556,8 @@ class RouteStructureAgent:
                 line_hint = str(r.get("line_hint") or "").strip() or "unknown"
                 snippet = str(r.get("snippet") or "").strip()
                 call_id = str(r.get("call_id") or "").strip() or f"c{idx}_{i}"
+                component_hint = str(r.get("component_hint") or "").strip() or "__Common__"
+                event_hint = str(r.get("event_hint") or "").strip() or "onClick"
                 if not snippet:
                     continue
                 calls.append(
@@ -416,6 +566,8 @@ class RouteStructureAgent:
                         "method": method,
                         "line_hint": line_hint,
                         "snippet": snippet,
+                        "component_hint": component_hint,
+                        "event_hint": event_hint,
                     }
                 )
 
@@ -489,6 +641,16 @@ class RouteStructureAgent:
             return []
         extracted_edges_count = len(existing_edges or [])
         gap = len(actionable_census_calls) - extracted_edges_count
+        self._set_state(RouteState.GAP_DECISION, file_path=file_key)
+        self._record_decision(
+            state=RouteState.GAP_DECISION,
+            action="compute_gap",
+            detail={
+                "actionable_calls": len(actionable_census_calls),
+                "extracted_edges": extracted_edges_count,
+                "gap": gap,
+            },
+        )
         if gap <= 0:
             return []
         # 当前策略：仅在“主抽取为 0”时补漏，避免已有边时继续补导致噪声增长。
@@ -509,8 +671,12 @@ class RouteStructureAgent:
             census_calls=actionable_census_calls,
         )
         try:
-            msg = await self.llm.ainvoke([("system", COVERAGE_RETRY_SYSTEM_PROMPT), ("user", user_prompt)])
-            self._record_token_usage(stage="recover", msg=msg)
+            self._set_state(RouteState.EDGE_RECOVER, file_path=file_key)
+            msg = await self._ainvoke_with_state(
+                stage="recover",
+                state=RouteState.EDGE_RECOVER,
+                messages=[("system", COVERAGE_RETRY_SYSTEM_PROMPT), ("user", user_prompt)],
+            )
             retry_edges = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
         except Exception as ex:
             print(f"[RouteStructureAgent] Coverage retry failed: {ex}")
@@ -608,6 +774,7 @@ class RouteStructureAgent:
             return
         self._visited.add(fp)
         self._count += 1
+        self._set_state(RouteState.EXPAND_IMPORTS, main_page=main_page_key, file_path=fp)
 
         code = self.reader.read_source_file(str(canonical_file))
         if not code.strip():
@@ -625,7 +792,14 @@ class RouteStructureAgent:
 
         # 仅对通过准入门的文件执行 LLM；其余文件只参与 import 递归。
         merged_edges: List[Dict[str, Any]] = []
-        if self._is_llm_admissible_file(file_path=canonical_file, code=code):
+        self._set_state(RouteState.ADMISSION_CHECK, main_page=main_page_key, file_path=fp)
+        admissible = self._is_llm_admissible_file(file_path=canonical_file, code=code)
+        self._record_decision(
+            state=RouteState.ADMISSION_CHECK,
+            action="llm_admission",
+            detail={"admissible": admissible, "file": fp},
+        )
+        if admissible:
             census_calls = await self._extract_router_census(
                 file_path=canonical_file,
                 code=code,
@@ -633,6 +807,7 @@ class RouteStructureAgent:
                 resolved_files=resolved_files,
             )
             actionable_census_calls = [c for c in census_calls if self._is_actionable_census_call(c)]
+            self.state_ctx.coverage_calls += len(actionable_census_calls)
             print(
                 "[RouteStructureAgent] Router census summary: "
                 f"total_calls={len(census_calls)}, actionable_calls={len(actionable_census_calls)}, file: {fp}"
@@ -647,6 +822,7 @@ class RouteStructureAgent:
                 chain=chain,
                 resolved_files=resolved_files,
             )
+            self.state_ctx.extracted_edges += len(merged_edges)
             print(
                 "[RouteStructureAgent] Coverage probe: "
                 f"actionable_calls={len(actionable_census_calls)}, extracted_edges={len(merged_edges)}, file: {fp}"
@@ -664,12 +840,14 @@ class RouteStructureAgent:
             )
             if recovered_edges:
                 merged_edges = [*merged_edges, *recovered_edges]
+                self.state_ctx.recovered_edges += len(recovered_edges)
                 print(
                     "[RouteStructureAgent] Coverage probe merged: "
                     f"merged_edges={len(merged_edges)}, file: {fp}"
                 )
 
         # 入库前统一做 target 合法性过滤，避免脏边进入最终 PTG。
+        self._set_state(RouteState.NORMALIZE_AND_FILTER, main_page=main_page_key, file_path=fp)
         invalid_target_dropped = 0
         for e in merged_edges:
             component_type = str(e.get("component_type") or "__Common__")
@@ -695,11 +873,13 @@ class RouteStructureAgent:
             ):
                 print(f"Found route: {main_page_key} -> {target}")
         if invalid_target_dropped > 0:
+            self.state_ctx.invalid_target_dropped += invalid_target_dropped
             print(
                 "[RouteStructureAgent] Invalid target dropped: "
                 f"dropped={invalid_target_dropped}, merged_edges={len(merged_edges)}, file: {fp}"
             )
 
+        self._set_state(RouteState.WRITE_PTG, main_page=main_page_key, file_path=fp)
         nested = self.import_resolver.find_nested_component_files(
             imports=imports,
             current_file_path=str(canonical_file),
@@ -715,40 +895,19 @@ class RouteStructureAgent:
                 chain=next_chain,
             )
 
-    async def run(self) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        项目入口：遍历 main_pages，执行抽取并保存结果。
-
-        Returns:
-            PTG 的 JSON 对象表示（source_page -> edges）。
-        """
+    def _prepare_main_pages(self) -> tuple[List[str], List[str]]:
+        """读取 main_pages 并完成运行前初始化。"""
+        self._set_state(RouteState.INIT)
         main_pages = ProjectReader.load_main_pages(self.config.main_pages_json_path)
         main_pages = [str(x) for x in (main_pages or []) if str(x).strip()]
         main_page_ids = [strip_ets(p) for p in main_pages]
-
         self._main_page_ids = {p for p in main_page_ids if p}
         self.memory.init_from_main_pages(sorted(self._main_page_ids))
         self.route_const_resolver.build()
+        return main_pages, main_page_ids
 
-        for mp_raw, mp_id in zip(main_pages, main_page_ids):
-            if not mp_id:
-                continue
-            mp_file = self.ets_root / _ensure_ets(mp_raw)
-            if not mp_file.exists():
-                print(f"[RouteStructureAgent] Main page file not found: {str(mp_file)}")
-                continue
-
-            self._visited = set()
-            self._count = 0
-
-            await self._analyze_file(
-                main_page_key=mp_id,
-                file_path=mp_file,
-                main_pages=main_page_ids,
-                depth=0,
-                chain=[mp_id],
-            )
-
+    def _finalize_outputs(self) -> Dict[str, List[Dict[str, Any]]]:
+        """输出汇总日志并保存 PTG/决策轨迹。"""
         unresolved_summary = self.import_resolver.get_unresolved_imports_summary(top_n=20)
         if unresolved_summary:
             print(
@@ -761,6 +920,7 @@ class RouteStructureAgent:
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir = Path(self.config.output_dir) / _safe_dir(self.config.project_name)
         ptg_path = out_dir / f"ptg_route_structure_{stamp}.json"
+        self._set_state(RouteState.FINALIZE)
         self.memory.save_json(str(ptg_path))
         print(f"[RouteStructureAgent] PTG saved: {str(ptg_path)}")
         print(
@@ -768,8 +928,185 @@ class RouteStructureAgent:
             f"calls={self._token_calls}, prompt={self._token_prompt}, "
             f"completion={self._token_completion}, total={self._token_total}"
         )
-
+        print(
+            "[RouteStructureAgent] State summary: "
+            f"coverage_calls={self.state_ctx.coverage_calls}, "
+            f"extracted_edges={self.state_ctx.extracted_edges}, "
+            f"recovered_edges={self.state_ctx.recovered_edges}, "
+            f"invalid_target_dropped={self.state_ctx.invalid_target_dropped}"
+        )
+        trace_path = out_dir / f"decision_trace_{stamp}.json"
+        trace_path.write_text(
+            json.dumps(
+                {
+                    "goal": {
+                        "maximize_recall": self.goal.maximize_recall,
+                        "minimize_hallucination": self.goal.minimize_hallucination,
+                        "max_llm_calls": self.goal.max_llm_calls,
+                        "token_budget_total": self.goal.token_budget_total,
+                    },
+                    "state_context": {
+                        "current_state": self.state_ctx.current_state,
+                        "current_main_page": self.state_ctx.current_main_page,
+                        "current_file": self.state_ctx.current_file,
+                        "llm_calls": self.state_ctx.llm_calls,
+                        "token_prompt": self.state_ctx.token_prompt,
+                        "token_completion": self.state_ctx.token_completion,
+                        "token_total": self.state_ctx.token_total,
+                        "coverage_calls": self.state_ctx.coverage_calls,
+                        "extracted_edges": self.state_ctx.extracted_edges,
+                        "recovered_edges": self.state_ctx.recovered_edges,
+                        "invalid_target_dropped": self.state_ctx.invalid_target_dropped,
+                    },
+                    "decision_trace": self.state_ctx.decision_trace,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        print(f"[RouteStructureAgent] Decision trace saved: {str(trace_path)}")
         return self.memory.to_json_obj()
+
+    async def _run_legacy(self) -> Dict[str, List[Dict[str, Any]]]:
+        """原始顺序编排执行器（LangGraph 不可用时回退）。"""
+        main_pages, main_page_ids = self._prepare_main_pages()
+        for mp_raw, mp_id in zip(main_pages, main_page_ids):
+            if not mp_id:
+                continue
+            self._set_state(RouteState.DISCOVER_MAIN_PAGE, main_page=mp_id)
+            mp_file = self.ets_root / _ensure_ets(mp_raw)
+            if not mp_file.exists():
+                print(f"[RouteStructureAgent] Main page file not found: {str(mp_file)}")
+                continue
+            self._visited = set()
+            self._count = 0
+            await self._analyze_file(
+                main_page_key=mp_id,
+                file_path=mp_file,
+                main_pages=main_page_ids,
+                depth=0,
+                chain=[mp_id],
+            )
+        return self._finalize_outputs()
+
+    async def _graph_node_init(self, _: RouteGraphState) -> RouteGraphState:
+        main_pages, main_page_ids = self._prepare_main_pages()
+        return {
+            "main_pages": main_pages,
+            "main_page_ids": main_page_ids,
+            "main_idx": 0,
+            "done": False,
+            "skip_current": False,
+        }
+
+    async def _graph_node_discover(self, state: RouteGraphState) -> RouteGraphState:
+        main_pages = state.get("main_pages", [])
+        main_page_ids = state.get("main_page_ids", [])
+        idx = int(state.get("main_idx", 0))
+        if idx >= len(main_pages):
+            return {"done": True}
+
+        mp_raw = str(main_pages[idx])
+        mp_id = str(main_page_ids[idx]) if idx < len(main_page_ids) else ""
+        mp_file = self.ets_root / _ensure_ets(mp_raw)
+        self._set_state(RouteState.DISCOVER_MAIN_PAGE, main_page=mp_id, file_path=str(mp_file))
+        skip_current = (not mp_id) or (not mp_file.exists())
+        if not mp_id:
+            print(f"[RouteStructureAgent] Empty main page id at index={idx}, skip.")
+        elif not mp_file.exists():
+            print(f"[RouteStructureAgent] Main page file not found: {str(mp_file)}")
+        return {
+            "current_main_page_raw": mp_raw,
+            "current_main_page_id": mp_id,
+            "current_main_page_file": str(mp_file),
+            "skip_current": skip_current,
+            "done": False,
+        }
+
+    async def _graph_node_process(self, state: RouteGraphState) -> RouteGraphState:
+        if bool(state.get("skip_current", False)):
+            return {}
+        mp_id = str(state.get("current_main_page_id", ""))
+        mp_file = str(state.get("current_main_page_file", ""))
+        main_page_ids = [str(x) for x in (state.get("main_page_ids") or [])]
+        if not mp_id or not mp_file:
+            return {}
+
+        self._visited = set()
+        self._count = 0
+        await self._analyze_file(
+            main_page_key=mp_id,
+            file_path=Path(mp_file),
+            main_pages=main_page_ids,
+            depth=0,
+            chain=[mp_id],
+        )
+        return {}
+
+    async def _graph_node_advance(self, state: RouteGraphState) -> RouteGraphState:
+        idx = int(state.get("main_idx", 0))
+        return {"main_idx": idx + 1}
+
+    async def _graph_node_finalize(self, _: RouteGraphState) -> RouteGraphState:
+        return {"ptg": self._finalize_outputs()}
+
+    def _graph_route_after_discover(self, state: RouteGraphState) -> str:
+        if bool(state.get("done", False)):
+            return "finalize"
+        if bool(state.get("skip_current", False)):
+            return "advance"
+        return "process"
+
+    def _graph_route_after_advance(self, state: RouteGraphState) -> str:
+        idx = int(state.get("main_idx", 0))
+        main_pages = state.get("main_pages", []) or []
+        return "finalize" if idx >= len(main_pages) else "discover"
+
+    def _build_state_graph(self):
+        if not _HAS_LANGGRAPH or StateGraph is None or END is None:
+            raise RuntimeError("LangGraph is not available.")
+        graph = StateGraph(RouteGraphState)
+        graph.add_node("init", self._graph_node_init)
+        graph.add_node("discover", self._graph_node_discover)
+        graph.add_node("process", self._graph_node_process)
+        graph.add_node("advance", self._graph_node_advance)
+        graph.add_node("finalize", self._graph_node_finalize)
+        graph.set_entry_point("init")
+        graph.add_edge("init", "discover")
+        graph.add_conditional_edges(
+            "discover",
+            self._graph_route_after_discover,
+            {"process": "process", "advance": "advance", "finalize": "finalize"},
+        )
+        graph.add_edge("process", "advance")
+        graph.add_conditional_edges(
+            "advance",
+            self._graph_route_after_advance,
+            {"discover": "discover", "finalize": "finalize"},
+        )
+        graph.add_edge("finalize", END)
+        return graph.compile()
+
+    async def run(self) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        项目入口：优先使用 LangGraph 编排；不可用时回退顺序编排。
+
+        Returns:
+            PTG 的 JSON 对象表示（source_page -> edges）。
+        """
+        if _HAS_LANGGRAPH:
+            try:
+                app = self._build_state_graph()
+                out = await app.ainvoke({})
+                if isinstance(out, dict) and isinstance(out.get("ptg"), dict):
+                    return out.get("ptg") or {}
+                return self.memory.to_json_obj()
+            except Exception as ex:
+                print(f"[RouteStructureAgent] LangGraph run failed, fallback to legacy: {ex}")
+        else:
+            print("[RouteStructureAgent] LangGraph not installed, use legacy runner.")
+        return await self._run_legacy()
 
     def run_sync(self) -> Dict[str, List[Dict[str, Any]]]:
         """

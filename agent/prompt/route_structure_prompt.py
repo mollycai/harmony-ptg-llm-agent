@@ -59,6 +59,9 @@ Hard requirements:
 - Include only direct evidence from code.
 - Do NOT infer PTG edges in this step.
 - Keep each snippet short but must include the real invocation (e.g., router.pushUrl(...)).
+- For each call, capture trigger context hints for later recovery:
+  - nearest trigger owner/component (component_hint)
+  - nearest trigger event (event_hint)
 
 Output schema (JSON array):
 [
@@ -66,15 +69,26 @@ Output schema (JSON array):
     "call_id": "string",
     "method": "string",
     "line_hint": "string",
-    "snippet": "string"
+    "snippet": "string",
+    "component_hint": "string",
+    "event_hint": "string"
   }
 ]
 
 Field rules:
 - method: one of pushUrl, replaceUrl, push, replace, back, Navigation, NavPathStack, other_router.
 - line_hint: a short hint like "around line 128".
-- snippet: short original code snippet containing the call.
+- snippet:
+  - short original code snippet containing the call;
+  - should also include nearby trigger evidence when available (e.g., .onClick(...), onItemClick(...), callback name).
 - call_id: stable id inside this chunk, e.g., c1, c2, c3.
+- component_hint:
+  - nearest UI component / trigger owner candidate (e.g., Button, Image, ListItem, CommodityList, "__Common__").
+  - never output API/method names (e.g., router.pushUrl, this.xxx, console.xxx).
+- event_hint:
+  - should be in onXxx form whenever possible.
+  - if unclear, use onClick as fallback.
+  - never output unknown.
 - Do not fabricate line_hint/snippet; if uncertain, still provide best nearby evidence from code text.
 """
 
@@ -88,6 +102,7 @@ Hard requirements:
 - Prefer resolving target to a page-like destination (e.g., pages/xxx or RouteConst.xxx mapped by context).
 - Do not output back-navigation as target.
 - If a call only yields runtime values and cannot map to a concrete page-like destination, SKIP that call.
+- component_type and event must be evidence-driven, not guessed.
 
 Output schema (JSON array):
 [
@@ -104,8 +119,19 @@ Field rules:
 - call_id:
   - Must come from input `census_calls`.
   - Do not output edges with unknown/new call_id.
-- component_type: component name or "__Common__" if unclear.
-- event: onXxx; if unclear use onClick.
+- component_type:
+  - Use this priority:
+    1) `census_calls.component_hint` if valid
+    2) nearest component evidence in source code around the call snippet
+    3) "__Common__" fallback
+  - must be a component/trigger owner, not API/method/function name.
+- event:
+  - Use this priority:
+    1) `census_calls.event_hint` if valid
+    2) nearest event evidence in source code around the call snippet
+    3) onClick fallback
+  - must be onXxx form.
+  - never output unknown.
 - target:
   - Must be page-like target only.
   - Forbidden values/forms: "url", "uri", "target", "name", "routeName",
@@ -113,6 +139,7 @@ Field rules:
     and any back-navigation expression.
 - target_expr: original destination expression in code.
 - If target violates forbidden forms, do not output that edge.
+- If component/event has no evidence and fallback is used, keep edge only when target is clearly page-like.
 """
 
 
@@ -169,6 +196,7 @@ def build_census_user_prompt(
     }
     return (
         "Task: Build a router/navigation call census for this code chunk.\n"
+        "Include trigger context hints for each call: component_hint and event_hint.\n"
         "Return ONLY a JSON array.\n\n"
         "Context (JSON):\n"
         f"{json.dumps(context_obj, ensure_ascii=False)}\n\n"

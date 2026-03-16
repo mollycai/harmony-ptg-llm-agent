@@ -1,5 +1,6 @@
 python-dotenv==1.0.1
 langchain-core==0.3.80
 langchain-openai==0.3.17
+langgraph==0.2.67
 tree-sitter
 tree-sitter-typescript
