@@ -1,0 +1,129 @@
+{
+  "pages/ForgetPasswordPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/ResetPasswordPage"
+    }
+  ],
+  "pages/IndexPage": [
+    {
+      "component": {
+        "type": "Column"
+      },
+      "event": "onClick",
+      "target": "pages/MovieDetailPage"
+    },
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/MovieSearchPage"
+    },
+    {
+      "component": {
+        "type": "Image"
+      },
+      "event": "onClick",
+      "target": "pages/MovieUserPage"
+    }
+  ],
+  "pages/LaunchPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "aboutToAppear", // 事件错误
+      "target": "pages/IndexPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "aboutToAppear", // 事件错误
+      "target": "pages/LoginPage"
+    }
+  ],
+  "pages/LoginPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onClick", // 事件错误
+      "target": "pages/MusicIndexPage"
+    },
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/RegisterPage"
+    },
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/ForgetPasswordPage"
+    }
+  ],
+  "pages/MovieDetailPage": [
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/MoviePlayPage"
+    }
+  ],
+  "pages/MoviePlayPage": [],
+  "pages/MovieSearchPage": [
+    {
+      "component": {
+        "type": "Column"
+      },
+      "event": "onClick",
+      "target": "pages/MovieDetailPage"
+    }
+  ],
+  "pages/MovieUserPage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/MovieLoginPage"
+    }
+  ],
+  "pages/RegisterPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/IndexPage"
+    }
+  ],
+  "pages/ResetPasswordPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/IndexPage"
+    }
+  ],
+  "pages/UpdatePasswordPage": [],
+  "pages/UserPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/UpdatePasswordPage"
+    }
+  ]
+}

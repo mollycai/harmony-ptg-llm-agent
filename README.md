@@ -88,9 +88,9 @@ python agent/workflow.py --deepseek --HarmoneyOpenEye
 待实现，目前觉得不是很有必要。
 
 ### Multi-Agent（当前实现）
-采用 LangChain + 工具化工作流实现 PTG 抽取与校验，核心策略是：
-- `RouteStructureAgent` 负责尽可能高召回（找全边）；
-- `RouteValidationAgent` 负责规则化收口（清洗、去重、过滤无效边）。
+采用 LangChain + 工具化工作流实现 PTG 抽取与校验，当前架构是“状态机编排 + 局部自主决策”：
+- `RouteStructureAgent`：召回优先，负责发现尽可能完整的候选边；
+- `RouteValidationAgent`：精度收口，负责规则化清洗、去重与过滤无效边。
 
 PTG schema:
 ```ts
@@ -101,53 +101,141 @@ type PTG = Record<PagePath, Array<{
 }>>
 ```
 
-#### 1) RouteStructureAgent（主抽取）
-流程（已实现）：
+#### 1) 工作流总览（状态机）
+每个 `main_page` 独立执行以下状态流转：
 ```text
-读取 main_pages.json
--> 初始化 PTG memory
--> 从每个 main page 出发，递归解析 import 可达 .ets 文件
--> 文件准入门（仅用于是否进入 LLM，且不影响 import 递归）：
-   - 跳过 llm_skip_dirs（默认：http/route）
-   - 仅当代码命中“可执行路由动作”才进入 LLM（pushUrl/replaceUrl/push/replace/back）
--> 三阶段 LLM 协作：
-   1) _extract_router_census：先做调用点普查（coverage 基线）
-   2) _extract_edges_by_llm：主抽取边
-   3) _recover_edges_by_census_gap：仅对缺口做补漏
--> tool-calling 补解析（import/target_expr 常量与表达式解析）
--> target 合法性过滤 + 写入 memory（自动去重）
--> 保存 PTG JSON
+INIT
+-> DISCOVER_MAIN_PAGE
+-> EXPAND_IMPORTS
+-> ADMISSION_CHECK
+-> ROUTER_CENSUS
+-> EDGE_CONSTRUCT
+-> NORMALIZE_AND_FILTER
+-> WRITE_PTG
+-> NEXT_FILE / NEXT_MAIN_PAGE
+-> FINALIZE
 ```
 
-设计意图：
-- `census` 负责“应当有多少个候选调用点”；
-- `extract` 负责“主要边抽取”；
-- `recover` 只补缺口，避免全量重抽带来的误检扩散。
+说明：
+- 全局状态迁移固定，保证可复现和可控成本。
+- 局部语义任务（识别调用点、提取边、补漏）由 LLM 承担。
+- 规则校验和最终写入保持确定性，避免幻觉在控制流层扩散。
 
-可观测性：
-- 每次 LLM 交互都会打印 token 消耗（如 `extract/census/recover/tool_calling`）；
-- PTG 保存后会打印总 token 汇总。
+#### 2) 局部自主决策（LLM + Tool Calling）
+LLM 不是全流程自由调度，只在受限状态内决策：
+- `ROUTER_CENSUS`：识别路由调用点并生成 `call_id`（覆盖率基线）。
+- `EDGE_CONSTRUCT`：基于 `census_calls` 逐调用点构建边（主抽取）。
+- `tool-calling`：补解析 `import/target_expr`，例如：
+  - `resolve_import_path`
+  - `resolve_target_expr`
 
-#### 2) RouteValidationAgent（规则校验与重写）
-当前实现是轻量规则化校验（非重型 LLM 回读）：
-- 清洗输入结构：过滤非 dict 边；
+不交给 LLM 的职责：
+- 状态迁移控制；
+- PTG 直接落盘；
+- 跳过校验或绕过过滤规则；
+- 超预算继续执行。
+
+#### 3) RouteStructureAgent（主抽取，召回优先）
+核心流程（已实现）：
+- 读取 `main_pages.json`，初始化 `PTGMemory`。
+- 从 main page 递归解析 import 可达 `.ets` 文件（source page 绑定当前 main page）。
+- 文件准入门（仅作用于“是否进入 LLM”，不影响 import 递归）：
+  - 跳过 `llm_skip_dirs`（默认：`http/route`）；
+  - 仅当运行时代码命中可执行路由动作才进入 LLM（`pushUrl/replaceUrl/push/replace/back`）。
+- 两阶段协作：
+  - `_extract_router_census`：先统计调用点，形成 coverage 基线；
+  - `_recover_edges_by_census_gap`：基于 `census_calls` 逐调用点构建边（主抽取，对应状态名 `EDGE_CONSTRUCT`）。
+- 入库前做 target 合法性过滤，写入 memory（自动去重）。
+
+#### 4) RouteValidationAgent（规则校验与重写，精度收口）
+定位：
+- 结构抽取后的最终规则闸门；
+- 轻量、确定性、可解释，不依赖重型 LLM 回读。
+
+输入：
+- RouteStructure 输出的 PTG；
+- `main_pages` 列表。
+
+输出：
+- `validated_ptg`
+- `report`（修正与丢弃统计）
+
+校验规则（当前实现）：
+- 结构校验：过滤非 `dict` 边；
 - 字段规范化：
-  - `component.type` 不合法降级为 `__Common__`
-  - `event` 非 `onXxx` 统一为 `onClick`
-  - `target` 做 normalize/strip，并过滤无效 target（如 `url`、表达式残留等）
+  - `component.type` 非法值降级为 `__Common__`；
+  - `event` 非 `onXxx` 统一为 `onClick`；
+  - `target` 做 normalize/strip，并过滤无效值（如 `url`、表达式残留、空值）；
 - 同 source 下按 `(component.type, event, target)` 去重；
-- 补齐所有 main page（无边则置空数组）；
-- 输出统计报告：`edges_in/out`、`edges_fixed_*`、`edges_dropped_*`、`drop_reasons`。
+- main pages 兜底补齐（无边页面保留空数组）。
 
-#### 3) 运行与验证
-- 运行命令：
+报告字段（便于论文统计与回归）：
+- `edges_in`、`edges_out`
+- `edges_fixed_component`、`edges_fixed_event`
+- `edges_dropped_schema`、`edges_dropped_invalid_target`
+- `edges_deduped`
+- `drop_reasons`
+
+#### 5) 可观测性与运行结果
+token 统计（当前实现）：
+- 每次 LLM 交互后，从 LangChain 消息对象提取并打印 token 用量：
+  - `census` / `construct` / `tool_calling`
+- PTG 保存后打印全流程 token 汇总：
+  - `calls` / `prompt` / `completion` / `total`
+
+运行命令：
 ```bash
-python agent/workflow.py --deepseek --HarmoneyOpenEye
+./.venv/bin/python agent/workflow.py --deepseek --HarmoneyOpenEye
 ```
-- 你会在控制台看到：
-  - RouteStructure 阶段的文件读取日志、三阶段抽取日志、每次 token 日志；
-  - RouteValidation 阶段的 `report`（包含修正/丢弃原因统计）；
-  - 最终 PTG JSON 输出。
+
+控制台可观察到：
+- RouteStructure 阶段的递归读取、两阶段抽取、tool-calling 与 token 日志；
+- RouteValidation 阶段的 `report`（修正/丢弃/去重明细）；
+- 最终 PTG JSON 输出。
+
+#### 6) 状态 -> 代码函数映射（实现对齐）
+下面给出论文方法中的状态，与当前代码函数的对应关系，便于复现与引用。
+
+| 状态 | 主要职责 | 当前实现函数（RouteStructureAgent / RouteValidationAgent） |
+| --- | --- | --- |
+| `INIT` | 初始化模型、工具、memory、配置 | `RouteStructureAgent.__init__` |
+| `DISCOVER_MAIN_PAGE` | 读取 main pages，逐个入口页面启动流程 | `RouteStructureAgent.run` |
+| `EXPAND_IMPORTS` | 读取文件、提取 import、解析依赖文件 | `RouteStructureAgent._analyze_file`（内部调用 `import_resolver.extract_imports` / `resolve_imports_to_files` / `find_nested_component_files`） |
+| `ADMISSION_CHECK` | 判断文件是否进入 LLM 分析 | `RouteStructureAgent._is_llm_admissible_file`、`_to_runtime_code_for_admission`、`_has_router_hints` |
+| `ROUTER_CENSUS` | 统计 router 调用点（coverage 基线） | `RouteStructureAgent._extract_router_census` |
+| `EDGE_CONSTRUCT` | 基于 census 调用点逐点构建路由边 | `RouteStructureAgent._recover_edges_by_census_gap`（LLM 构边 + 过滤 + merge） |
+| `NORMALIZE_AND_FILTER` | 入库前 target 合法性过滤、边字段规整 | `RouteStructureAgent._analyze_file`（入库前过滤） |
+| `WRITE_PTG` | 写入 PTG memory 并去重 | `PTGMemory.add_edge`（在 `_analyze_file` 中调用） |
+| `FINALIZE` | 保存 PTG、输出统计日志 | `RouteStructureAgent.run`（`memory.save_json` + token summary） |
+| `VALIDATE_REWRITE` | 最终规则校验与重写 | `RouteValidationAgent.validate_and_rewrite` |
+
+补充说明：
+- tool-calling 补解析能力由 `agent/tools/route_tool_calling.py` 中 `RouteToolCallingResolver.supplement_edges` 提供。
+- 该能力在 `EDGE_CONSTRUCT` 状态中被调用，用于解析 `import/target_expr`。
+
+#### 7) 状态图（Mermaid）
+```mermaid
+flowchart TD
+    A[INIT] --> B[DISCOVER_MAIN_PAGE]
+    B --> C[EXPAND_IMPORTS]
+    C --> D{ADMISSION_CHECK}
+
+    D -- no --> C2[NEXT_FILE]
+    C2 --> C
+
+    D -- yes --> E[ROUTER_CENSUS]
+    E --> H[EDGE_CONSTRUCT]
+    H --> I[NORMALIZE_AND_FILTER]
+    I --> J[WRITE_PTG]
+    J --> C2
+
+    C2 --> K{NEXT_MAIN_PAGE?}
+    K -- yes --> B
+    K -- no --> L[FINALIZE]
+
+    L --> M[VALIDATE_REWRITE<br/>RouteValidationAgent]
+    M --> N[OUTPUT: validated PTG + report]
+```
 
 
 ## 待解决/探究的问题    

@@ -2,17 +2,16 @@ from __future__ import annotations
 
 # 路由结构抽取主流程（RouteStructureAgent）：
 # 1) 从 main_pages 出发递归读取可达的 .ets 文件；
-# 2) 对通过“LLM 准入门”的文件执行三阶段抽取：
+# 2) 对通过“LLM 准入门”的文件执行两阶段抽取：
 #    - census：先统计调用点
-#    - extract：主抽取边
-#    - recover：按缺口补漏
+#    - construct：基于 census 调用点直接构建边
 # 3) 做 target 合法性过滤后写入 PTGMemory。
 
 import asyncio
 import json
 import re
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -25,10 +24,8 @@ from agent.memory import PTGMemory
 from agent.prompt.route_structure_prompt import (
     CENSUS_SYSTEM_PROMPT,
     COVERAGE_RETRY_SYSTEM_PROMPT,
-    SYSTEM_PROMPT,
     build_coverage_retry_user_prompt,
     build_census_user_prompt,
-    build_user_prompt,
 )
 from agent.tools.import_resolver import ImportResolver
 from agent.tools.project_reader import ProjectReader
@@ -120,9 +117,7 @@ class RouteState(str, Enum):
     EXPAND_IMPORTS = "EXPAND_IMPORTS"
     ADMISSION_CHECK = "ADMISSION_CHECK"
     ROUTER_CENSUS = "ROUTER_CENSUS"
-    EDGE_EXTRACT = "EDGE_EXTRACT"
-    GAP_DECISION = "GAP_DECISION"
-    EDGE_RECOVER = "EDGE_RECOVER"
+    EDGE_CONSTRUCT = "EDGE_CONSTRUCT"
     NORMALIZE_AND_FILTER = "NORMALIZE_AND_FILTER"
     WRITE_PTG = "WRITE_PTG"
     FINALIZE = "FINALIZE"
@@ -150,10 +145,8 @@ class StateContext:
     token_completion: int = 0
     token_total: int = 0
     coverage_calls: int = 0
-    extracted_edges: int = 0
-    recovered_edges: int = 0
+    constructed_edges: int = 0
     invalid_target_dropped: int = 0
-    decision_trace: List[Dict[str, Any]] = field(default_factory=list)
 
 
 class RouteGraphState(TypedDict, total=False):
@@ -243,10 +236,6 @@ class RouteStructureAgent:
             "action": action,
             "detail": detail,
         }
-        self.state_ctx.decision_trace.append(row)
-        # 限制轨迹长度，避免内存膨胀。
-        if len(self.state_ctx.decision_trace) > 500:
-            self.state_ctx.decision_trace = self.state_ctx.decision_trace[-500:]
         print(
             "[RouteStructureAgent] Decision: "
             + json.dumps(row, ensure_ascii=False)
@@ -435,72 +424,6 @@ class RouteStructureAgent:
         )
         return chunks
 
-    async def _extract_edges_by_llm(
-        self,
-        *,
-        file_path: Path,
-        code: str,
-        imports: Dict[str, str],
-        resolved_map: Dict[str, str],
-        main_pages: List[str],
-        chain: List[str],
-        resolved_files: List[str],
-    ) -> List[Dict[str, Any]]:
-        """
-        主抽取：按分块调用 LLM，并叠加 tool-calling 补解析结果。
-
-        Args:
-            file_path: 当前分析文件路径。
-            code: 当前文件源码。
-            imports: 当前文件提取出的 import 映射（符号 -> 模块路径）。
-            resolved_map: import 解析后的文件映射（符号 -> 绝对文件路径）。
-            main_pages: main_pages 入口页面列表（去 .ets 后）。
-            chain: 当前依赖链，用于提示模型上下文。
-            resolved_files: 当前文件可解析到的依赖文件列表。
-
-        Returns:
-            当前文件抽取到的边列表（未入库，可能含需二次过滤项）。
-        """
-        file_key = normalize_path(str(file_path))
-        chunks = self._split_code_chunks(code)
-        all_edges: List[Dict[str, Any]] = []
-        for idx, chunk in enumerate(chunks, start=1):
-            if not self._has_router_hints(chunk):
-                continue
-            self._set_state(RouteState.EDGE_EXTRACT, file_path=file_key)
-            if len(chunks) > 1:
-                print(f"[RouteStructureAgent] Analyze chunk {idx}/{len(chunks)}: {file_key}")
-
-            user_prompt = build_user_prompt(
-                file_path=file_key,
-                code=chunk,
-                main_pages=main_pages,
-                dependency_chain=chain,
-                resolved_import_files=resolved_files,
-                route_constant_map=self.route_const_resolver.full_map,
-            )
-            edges: List[Dict[str, Any]] = []
-            print(f"[RouteStructureAgent] LLM Reading & analyzing file: {file_key}")
-            try:
-                msg = await self._ainvoke_with_state(
-                    stage="extract",
-                    state=RouteState.EDGE_EXTRACT,
-                    messages=[("system", SYSTEM_PROMPT), ("user", user_prompt)],
-                )
-                edges = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
-            except Exception as ex:
-                print(f"[RouteStructureAgent] LLM analyze failed: {ex}")
-
-            supplement_edges = await self.tool_calling_resolver.supplement_edges(
-                file_path=file_key,
-                imports=imports,
-                resolved_imports=resolved_map,
-                llm_edges=edges,
-            )
-            all_edges.extend(edges)
-            all_edges.extend(supplement_edges)
-        return all_edges
-
     async def _extract_router_census(
         self,
         *,
@@ -617,7 +540,7 @@ class RouteStructureAgent:
             str(edge.get("target") or "").strip(),
         )
 
-    async def _recover_edges_by_census_gap(
+    async def _construct_edges_from_census(
         self,
         *,
         file_path: Path,
@@ -628,38 +551,20 @@ class RouteStructureAgent:
         chain: List[str],
         resolved_files: List[str],
         actionable_census_calls: List[Dict[str, str]],
-        existing_edges: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         """
-        缺口补漏：
-        - 当 census 可执行调用数 > 当前抽取边数时触发；
-        - 用 call_id、target 合法性、源码弱证据收紧补漏结果；
-        - 最终通过去重和 gap 上限控制，避免补漏放大误检。
+        基于 census 调用点直接构建边：
+        - 仅处理 actionable census calls（已剔除 back）；
+        - 用 call_id、target 合法性、源码弱证据收紧构边结果；
+        - 结合 tool-calling 做 target_expr 补解析后再去重合并。
         """
         file_key = normalize_path(str(file_path))
         if not actionable_census_calls:
             return []
-        extracted_edges_count = len(existing_edges or [])
-        gap = len(actionable_census_calls) - extracted_edges_count
-        self._set_state(RouteState.GAP_DECISION, file_path=file_key)
-        self._record_decision(
-            state=RouteState.GAP_DECISION,
-            action="compute_gap",
-            detail={
-                "actionable_calls": len(actionable_census_calls),
-                "extracted_edges": extracted_edges_count,
-                "gap": gap,
-            },
-        )
-        if gap <= 0:
-            return []
-        # 当前策略：仅在“主抽取为 0”时补漏，避免已有边时继续补导致噪声增长。
-        if extracted_edges_count != 0:
-            return []
 
         print(
-            "[RouteStructureAgent] Coverage retry start: "
-            f"calls={len(actionable_census_calls)}, edges={extracted_edges_count}, gap={gap}, file: {file_key}"
+            "[RouteStructureAgent] Edge construct start: "
+            f"calls={len(actionable_census_calls)}, file: {file_key}"
         )
         user_prompt = build_coverage_retry_user_prompt(
             file_path=file_key,
@@ -671,24 +576,23 @@ class RouteStructureAgent:
             census_calls=actionable_census_calls,
         )
         try:
-            self._set_state(RouteState.EDGE_RECOVER, file_path=file_key)
+            self._set_state(RouteState.EDGE_CONSTRUCT, file_path=file_key)
             msg = await self._ainvoke_with_state(
-                stage="recover",
-                state=RouteState.EDGE_RECOVER,
+                stage="construct",
+                state=RouteState.EDGE_CONSTRUCT,
                 messages=[("system", COVERAGE_RETRY_SYSTEM_PROMPT), ("user", user_prompt)],
             )
-            retry_edges = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
+            constructed_edges = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
         except Exception as ex:
-            print(f"[RouteStructureAgent] Coverage retry failed: {ex}")
-            retry_edges = []
+            print(f"[RouteStructureAgent] Edge construct failed: {ex}")
+            constructed_edges = []
 
         actionable_ids = {str(x.get("call_id") or "").strip() for x in actionable_census_calls}
-        existing_keys = {self._edge_key_for_merge(x) for x in (existing_edges or [])}
-        filtered_retry: List[Dict[str, Any]] = []
+        filtered_edges: List[Dict[str, Any]] = []
         seen = set()
         invalid_targets = 0
         invalid_call_id = 0
-        for e in retry_edges:
+        for e in constructed_edges:
             call_id = str(e.get("call_id") or "").strip()
             if not call_id or call_id not in actionable_ids:
                 invalid_call_id += 1
@@ -703,25 +607,25 @@ class RouteStructureAgent:
             if not has_evidence:
                 continue
             k = self._edge_key_for_merge(e)
-            if not k[2] or k in existing_keys or k in seen:
+            if not k[2] or k in seen:
                 continue
             seen.add(k)
-            filtered_retry.append(e)
+            filtered_edges.append(e)
         if invalid_targets > 0 or invalid_call_id > 0:
             print(
-                "[RouteStructureAgent] Coverage retry filtered: "
+                "[RouteStructureAgent] Edge construct filtered: "
                 f"file={file_key}, invalid_call_id={invalid_call_id}, invalid_target={invalid_targets}"
             )
 
-        retry_patch = await self.tool_calling_resolver.supplement_edges(
+        patched_edges = await self.tool_calling_resolver.supplement_edges(
             file_path=file_key,
             imports=imports,
             resolved_imports=resolved_map,
-            llm_edges=filtered_retry,
+            llm_edges=filtered_edges,
         )
         out: List[Dict[str, Any]] = []
-        merged_seen = set(existing_keys)
-        for e in [*filtered_retry, *retry_patch]:
+        merged_seen = set()
+        for e in [*filtered_edges, *patched_edges]:
             t = str(e.get("target") or "").strip()
             if is_invalid_target(t):
                 continue
@@ -730,11 +634,9 @@ class RouteStructureAgent:
                 continue
             merged_seen.add(k)
             out.append(e)
-            if len(out) >= gap:
-                break
         print(
-            "[RouteStructureAgent] Coverage retry done: "
-            f"raw={len(retry_edges)}, filtered={len(filtered_retry)}, recovered={len(out)}, gap={gap}, file: {file_key}"
+            "[RouteStructureAgent] Edge construct done: "
+            f"raw={len(constructed_edges)}, filtered={len(filtered_edges)}, constructed={len(out)}, file: {file_key}"
         )
         return out
 
@@ -813,21 +715,7 @@ class RouteStructureAgent:
                 f"total_calls={len(census_calls)}, actionable_calls={len(actionable_census_calls)}, file: {fp}"
             )
 
-            merged_edges = await self._extract_edges_by_llm(
-                file_path=canonical_file,
-                code=code,
-                imports=imports,
-                resolved_map=resolved_map,
-                main_pages=main_pages,
-                chain=chain,
-                resolved_files=resolved_files,
-            )
-            self.state_ctx.extracted_edges += len(merged_edges)
-            print(
-                "[RouteStructureAgent] Coverage probe: "
-                f"actionable_calls={len(actionable_census_calls)}, extracted_edges={len(merged_edges)}, file: {fp}"
-            )
-            recovered_edges = await self._recover_edges_by_census_gap(
+            merged_edges = await self._construct_edges_from_census(
                 file_path=canonical_file,
                 code=code,
                 imports=imports,
@@ -836,15 +724,8 @@ class RouteStructureAgent:
                 chain=chain,
                 resolved_files=resolved_files,
                 actionable_census_calls=actionable_census_calls,
-                existing_edges=merged_edges,
             )
-            if recovered_edges:
-                merged_edges = [*merged_edges, *recovered_edges]
-                self.state_ctx.recovered_edges += len(recovered_edges)
-                print(
-                    "[RouteStructureAgent] Coverage probe merged: "
-                    f"merged_edges={len(merged_edges)}, file: {fp}"
-                )
+            self.state_ctx.constructed_edges += len(merged_edges)
 
         # 入库前统一做 target 合法性过滤，避免脏边进入最终 PTG。
         self._set_state(RouteState.NORMALIZE_AND_FILTER, main_page=main_page_key, file_path=fp)
@@ -907,7 +788,7 @@ class RouteStructureAgent:
         return main_pages, main_page_ids
 
     def _finalize_outputs(self) -> Dict[str, List[Dict[str, Any]]]:
-        """输出汇总日志并保存 PTG/决策轨迹。"""
+        """输出汇总日志并保存 PTG。"""
         unresolved_summary = self.import_resolver.get_unresolved_imports_summary(top_n=20)
         if unresolved_summary:
             print(
@@ -931,41 +812,9 @@ class RouteStructureAgent:
         print(
             "[RouteStructureAgent] State summary: "
             f"coverage_calls={self.state_ctx.coverage_calls}, "
-            f"extracted_edges={self.state_ctx.extracted_edges}, "
-            f"recovered_edges={self.state_ctx.recovered_edges}, "
+            f"constructed_edges={self.state_ctx.constructed_edges}, "
             f"invalid_target_dropped={self.state_ctx.invalid_target_dropped}"
         )
-        trace_path = out_dir / f"decision_trace_{stamp}.json"
-        trace_path.write_text(
-            json.dumps(
-                {
-                    "goal": {
-                        "maximize_recall": self.goal.maximize_recall,
-                        "minimize_hallucination": self.goal.minimize_hallucination,
-                        "max_llm_calls": self.goal.max_llm_calls,
-                        "token_budget_total": self.goal.token_budget_total,
-                    },
-                    "state_context": {
-                        "current_state": self.state_ctx.current_state,
-                        "current_main_page": self.state_ctx.current_main_page,
-                        "current_file": self.state_ctx.current_file,
-                        "llm_calls": self.state_ctx.llm_calls,
-                        "token_prompt": self.state_ctx.token_prompt,
-                        "token_completion": self.state_ctx.token_completion,
-                        "token_total": self.state_ctx.token_total,
-                        "coverage_calls": self.state_ctx.coverage_calls,
-                        "extracted_edges": self.state_ctx.extracted_edges,
-                        "recovered_edges": self.state_ctx.recovered_edges,
-                        "invalid_target_dropped": self.state_ctx.invalid_target_dropped,
-                    },
-                    "decision_trace": self.state_ctx.decision_trace,
-                },
-                ensure_ascii=False,
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
-        print(f"[RouteStructureAgent] Decision trace saved: {str(trace_path)}")
         return self.memory.to_json_obj()
 
     async def _run_legacy(self) -> Dict[str, List[Dict[str, Any]]]:
