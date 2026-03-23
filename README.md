@@ -20,7 +20,7 @@ python clone_projects.py E:/HarmonyOS
 ## baseline
 基于模型的HarmonyOS应用自动化测试的复现结果（与原作者的论文的结果有些出入，一些指标与原作者的论文有差异）：https://github.com/sqlab-sustech/HarmonyOS-App-Test
 
-通过静态解析生成的PTG详见/static_analysis
+通过静态解析生成的PTG详见/static_analysis，这是根据上述论文复现的结果，与原论文中描述的结果有细微不同
 
 ## 环境与配置
 - Python 3.10.4
@@ -61,7 +61,7 @@ APP_CONFIG = {
 }
 ``` 
 
-## 纯LLM交互
+## 纯LLM交互（此版本已废弃，在这只是做个对比）
 
 ### prompt内容
 prompt都由一下三部分组成：
@@ -237,15 +237,10 @@ flowchart TD
     M --> N[OUTPUT: validated PTG + report]
 ```
 
-
 ## 待解决/探究的问题    
-1. 国内的大模型，DeepSeek目前效果还挺好的，但是其他模型效果不好，考虑不同的模型使用不同的prompt，或换模型（Qwen, Kimi）
-2. SplashPage -> MainPage 是否算一条边
-3. 当前仍然会在merge时出现多条边，虽然可能不影响后面自动化执行流程，但在统计时不知如何处理
-4. 当前通过大模型处理，正确的边基本能够覆盖，但仍然会产生较多不存在的边，虽然这里不影响后续测试的自动流程，但看起来还是比较奇怪，主要出现在复杂一些的项目：Biandan、HarmonyMovieMusic、Homework-tasklist、MultiShopping
-5. 检测出来的边，target和event正确率很高，但是componet存在于static analysis分析出来不一样的，发现一些在复杂场景AI还是难以识别跳转规则所在的组件，待优化prompt，添加few-shot，待校对的文件:MultiDeviceMusic、HarmonyOpenEye、MultiShopping
-6. 原作者通过静态解析统计的结果可能存在偏差的项目：Biandan、MultiDeviceMusic、Msea-HarmonyOS
-7. Msea-HarmonyOS 属于是prompt规则的问题，然后多统计了2条边（有2条重复）
+1. SplashPage -> MainPage 是否算一条边
+2. 原作者通过静态解析统计的结果可能存在偏差的项目：Biandan、MultiDeviceMusic、Msea-HarmonyOS
+3. Msea-HarmonyOS 属于是prompt规则的问题，然后多统计了2条边（有2条重复）
 
 ## 原论文可能存在的问题
 1. Harmony-arts-movie-music-app-ui项目，静态解析pages/IndexPage.ets文件的结果，代码中没有显示的路由跳转规则，但通过静态解析仍然能解析出，同时其他页面的一些跳转关系，通过静态解析无法解析出来（例如：pages/RegisterPage.ets等），但原作者仍然将其FNR率统计和计算为0%。
@@ -270,3 +265,7 @@ flowchart TD
 解释：每个应用平均多出多少条假边，反映绝对噪声负担。
 3. Token Usage
 用于反映使用大模型给每个应用生成PTG所消耗的Token，包括：输入+输出+tool_calling
+
+## 自动化测试
+1. 配置 DevEco 和 HarmonyOS 开发所需要的包，以及如何操作执行自动化测试，可以参考：https://github.com/sqlab-sustech/HarmonyOS-App-Test
+2. 将/test文件夹下的所有文件，复制到对应项目里，例如：/Users/edwincai/MUST/projects/HarmoneyOpenEye/entry/src/ohosTest/ets/test，然后可以设置时间，开始执行测试，测试结果可以筛选查看testTag中的内容。

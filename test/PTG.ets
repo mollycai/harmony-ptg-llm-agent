@@ -23,7 +23,7 @@ const PTGJson = `{
     },
     {
       "component": {
-        "type": "__Common__"
+        "type": "HomeListItemComponent"
       },
       "event": "onClick",
       "target": "pages/commonDetail/DetailPage"
@@ -67,7 +67,7 @@ const PTGJson = `{
   "pages/SplashPage": [
     {
       "component": {
-        "type": "SplashPage"
+        "type": "__Common__"
       },
       "event": "aboutToAppear",
       "target": "pages/MainPage"
