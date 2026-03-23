@@ -471,6 +471,7 @@ class RouteStructureAgent:
                     messages=[("system", CENSUS_SYSTEM_PROMPT), ("user", user_prompt)],
                 )
                 rows = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
+                print('rows', rows)
             except Exception as ex:
                 print(f"[RouteStructureAgent] Census failed: {ex}")
                 rows = []
@@ -588,8 +589,8 @@ class RouteStructureAgent:
             constructed_edges = []
 
         actionable_ids = {str(x.get("call_id") or "").strip() for x in actionable_census_calls}
-        filtered_edges: List[Dict[str, Any]] = []
-        seen = set()
+        prefiltered_edges: List[Dict[str, Any]] = []
+        pre_seen = set()
         invalid_targets = 0
         invalid_call_id = 0
         for e in constructed_edges:
@@ -601,16 +602,11 @@ class RouteStructureAgent:
             if is_invalid_target(target):
                 invalid_targets += 1
                 continue
-            target_expr = str(e.get("target_expr") or "").strip()
-            # 弱证据命中：target_expr 命中源码，或 target 命中源码，或 target 形似页面路径。
-            has_evidence = (target_expr and target_expr in code) or (target and target in code) or ("/" in target)
-            if not has_evidence:
-                continue
             k = self._edge_key_for_merge(e)
-            if not k[2] or k in seen:
+            if not k[2] or k in pre_seen:
                 continue
-            seen.add(k)
-            filtered_edges.append(e)
+            pre_seen.add(k)
+            prefiltered_edges.append(e)
         if invalid_targets > 0 or invalid_call_id > 0:
             print(
                 "[RouteStructureAgent] Edge construct filtered: "
@@ -621,13 +617,18 @@ class RouteStructureAgent:
             file_path=file_key,
             imports=imports,
             resolved_imports=resolved_map,
-            llm_edges=filtered_edges,
+            llm_edges=prefiltered_edges,
         )
         out: List[Dict[str, Any]] = []
         merged_seen = set()
-        for e in [*filtered_edges, *patched_edges]:
+        for e in [*prefiltered_edges, *patched_edges]:
             t = str(e.get("target") or "").strip()
             if is_invalid_target(t):
+                continue
+            target_expr = str(e.get("target_expr") or "").strip()
+            # 弱证据命中：target_expr 命中源码，或 target 命中源码，或 target 形似页面路径。
+            has_evidence = (target_expr and target_expr in code) or (t and t in code) or ("/" in t)
+            if not has_evidence:
                 continue
             k = self._edge_key_for_merge(e)
             if not k[2] or k in merged_seen:
@@ -636,7 +637,8 @@ class RouteStructureAgent:
             out.append(e)
         print(
             "[RouteStructureAgent] Edge construct done: "
-            f"raw={len(constructed_edges)}, filtered={len(filtered_edges)}, constructed={len(out)}, file: {file_key}"
+            f"raw={len(constructed_edges)}, prefiltered={len(prefiltered_edges)}, "
+            f"patched={len(patched_edges)}, constructed={len(out)}, file: {file_key}"
         )
         return out
 

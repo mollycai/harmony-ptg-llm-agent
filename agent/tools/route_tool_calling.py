@@ -76,6 +76,7 @@ class RouteToolCallingResolver:
             )
 
         if not unresolved:
+            print("[RouteStructureAgent] Tool-calling supplement skipped: no unresolved edges.")
             return []
 
         print(f"[RouteStructureAgent] Tool-calling supplement start: unresolved_edges={len(unresolved)}")
@@ -125,6 +126,8 @@ class RouteToolCallingResolver:
                 messages.append(ToolMessage(content=str(out), tool_call_id=str(tc.get("id") or "")))
 
         patched = parse_llm_json_list(final_text)
+        if not patched:
+            print("[RouteStructureAgent] Tool-calling supplement result is empty.")
         print(f"[RouteStructureAgent] Tool-calling supplement done: patched_edges={len(patched)}")
         return patched
 
