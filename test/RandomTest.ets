@@ -27,8 +27,8 @@ export class RandomTest {
       await this.action();
       count++;
       await this.driver.delayMs(2000);
-      hilog.info(0x0000, 'testTag', '%{public}s', `pages vis: ${vis.size}}`);
-      hilog.info(0x0000, 'testTag', '%{public}s', `count: ${count}}`);
+      hilog.info(0x0000, 'testTag', '%{public}s', `pages vis: ${vis.size}`);
+      hilog.info(0x0000, 'testTag', '%{public}s', `count: ${count}`);
     }
   }
 

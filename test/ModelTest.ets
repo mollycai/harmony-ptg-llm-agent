@@ -38,10 +38,6 @@ export class ModelTest {
     this.targetHitSet.add(target);
   }
 
-  private isSameBounds(a, b): boolean {
-    return a.left === b.left && a.right === b.right && a.top === b.top && a.bottom === b.bottom;
-  }
-
   private getCurrentPage(): string {
     const basePage = router.getState().path + router.getState().name;
     try {
@@ -80,55 +76,6 @@ export class ModelTest {
       await this.driver.delayMs(800);
     }
     return this.getCurrentPage() === targetPage;
-  }
-
-  private isBoundsClose(a, b, tolerance: number = 6): boolean {
-    return Math.abs(a.left - b.left) <= tolerance &&
-      Math.abs(a.right - b.right) <= tolerance &&
-      Math.abs(a.top - b.top) <= tolerance &&
-      Math.abs(a.bottom - b.bottom) <= tolerance;
-  }
-
-  private stripQuery(pageKey: string): string {
-    const idx = pageKey.indexOf('?');
-    return idx >= 0 ? pageKey.slice(0, idx) : pageKey;
-  }
-
-  private isPageMatchTarget(currentPage: string, targetPage: string): boolean {
-    if (!targetPage) {
-      return false;
-    }
-    // If target includes params/query, require full match.
-    if (targetPage.indexOf('?') >= 0) {
-      return currentPage === targetPage;
-    }
-    // If target has no params/query, compare by base page path.
-    return this.stripQuery(currentPage) === targetPage;
-  }
-
-  private async isComponentInCurrentPage(component, type: string, originPage?: string): Promise<boolean> {
-    if (originPage && this.getCurrentPage() !== originPage) {
-      return false;
-    }
-    try {
-      const targetBounds = await component.getBounds();
-      const latestComponents = await this.driver.findComponents(ON.type(type));
-      if (!latestComponents || !Array.isArray(latestComponents) || latestComponents.length === 0) {
-        return false;
-      }
-      for (let latest of latestComponents) {
-        try {
-          const latestBounds = await latest.getBounds();
-          if (this.isSameBounds(targetBounds, latestBounds) || this.isBoundsClose(targetBounds, latestBounds)) {
-            return true;
-          }
-        } catch (_) {
-        }
-      }
-      return false;
-    } catch (_) {
-      return false;
-    }
   }
 
   async handleSafePressBack(router) {
@@ -252,17 +199,6 @@ export class ModelTest {
       }
     }
 
-    const randomAction = async () => {
-      for (let i = 0; i < 10; i++) {
-        await this.componentClick();
-        await this.driver.delayMs(1000);
-        let page = this.getCurrentPage();
-        if (!this.vis.has(page) && page !== curPage) {
-          await this.test();
-        }
-      }
-    }
-
     if (skipTabLoop) {
       await doAction();
     } else {
@@ -278,17 +214,12 @@ export class ModelTest {
             await this.driver.delayMs(2000);
             await this.driver.click(i * d - 20, top);
             hilog.info(0x0000, 'testTag', '%{public}s', `tab: ${i}`);
-            // 594, 2790
             await this.driver.delayMs(2000);
             await doAction();
-            if (i == 4) {
-              // await randomAction();
-            }
           }
         }
       } else {
         await doAction();
-        // await randomAction();
       }
     }
     await this.driver.delayMs(1000);
