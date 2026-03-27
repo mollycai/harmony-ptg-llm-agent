@@ -789,6 +789,37 @@ class RouteStructureAgent:
         self.route_const_resolver.build()
         return main_pages, main_page_ids
 
+    def _sync_test_ptg_ets(self, ptg_obj: Dict[str, List[Dict[str, Any]]]) -> None:
+        """同步更新 test/PTG.ets 中的 PTGJson/PTGJSON 常量。"""
+        repo_root = Path(__file__).resolve().parent.parent
+        ptg_ets_path = repo_root / "test" / "PTG.ets"
+        if not ptg_ets_path.exists():
+            print(f"[RouteStructureAgent] test/PTG.ets not found, skip sync: {str(ptg_ets_path)}")
+            return
+
+        ptg_json_text = json.dumps(ptg_obj, ensure_ascii=False, indent=2)
+        try:
+            text = ptg_ets_path.read_text(encoding="utf-8")
+        except Exception as ex:
+            print(f"[RouteStructureAgent] Failed to read test/PTG.ets: {ex}")
+            return
+
+        pattern = re.compile(r"(const\s+(PTGJson|PTGJSON)\s*=\s*)`[\s\S]*?`;", flags=re.MULTILINE)
+        m = pattern.search(text)
+        if m:
+            prefix = m.group(1)
+            new_block = f"{prefix}`{ptg_json_text}`;"
+            new_text = pattern.sub(new_block, text, count=1)
+        else:
+            # 兜底：若未匹配到既有常量，直接重写为标准模板。
+            new_text = f"const PTGJson = `{ptg_json_text}`;\nexport default PTGJson;\n"
+
+        try:
+            ptg_ets_path.write_text(new_text, encoding="utf-8")
+            print(f"[RouteStructureAgent] PTG synced to test/PTG.ets: {str(ptg_ets_path)}")
+        except Exception as ex:
+            print(f"[RouteStructureAgent] Failed to write test/PTG.ets: {ex}")
+
     def _finalize_outputs(self) -> Dict[str, List[Dict[str, Any]]]:
         """输出汇总日志并保存 PTG。"""
         unresolved_summary = self.import_resolver.get_unresolved_imports_summary(top_n=20)
@@ -806,6 +837,8 @@ class RouteStructureAgent:
         self._set_state(RouteState.FINALIZE)
         self.memory.save_json(str(ptg_path))
         print(f"[RouteStructureAgent] PTG saved: {str(ptg_path)}")
+        ptg_obj = self.memory.to_json_obj()
+        self._sync_test_ptg_ets(ptg_obj)
         print(
             "[RouteStructureAgent] Token usage summary: "
             f"calls={self._token_calls}, prompt={self._token_prompt}, "
@@ -817,7 +850,7 @@ class RouteStructureAgent:
             f"constructed_edges={self.state_ctx.constructed_edges}, "
             f"invalid_target_dropped={self.state_ctx.invalid_target_dropped}"
         )
-        return self.memory.to_json_obj()
+        return ptg_obj
 
     async def _run_legacy(self) -> Dict[str, List[Dict[str, Any]]]:
         """原始顺序编排执行器（LangGraph 不可用时回退）。"""
