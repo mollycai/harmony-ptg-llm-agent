@@ -1,0 +1,464 @@
+03-28 17:12:29.158 9934-23534/? I 00000/testTag: OpenHarmonyTestRunner OnPrepare
+03-28 17:12:29.159 9934-23534/? I 00000/testTag: OpenHarmonyTestRunner onRun run
+03-28 17:12:29.167 9934-23534/? I 00000/testTag: cmd : aa start -d 0 -a TestAbility -b com.winwang.harmonyOpenEye
+03-28 17:12:29.167 9934-23534/? I 00000/testTag: OpenHarmonyTestRunner onRun end
+03-28 17:12:29.168 9934-23534/? I 00000/testTag: addAbilityMonitorCallback : null
+03-28 17:12:30.117 9934-23534/? I 00000/testTag: TestAbility onCreate
+03-28 17:12:30.117 9934-23534/? I 00000/testTag: want param:{"deviceId":"0","bundleName":"com.winwang.harmonyOpenEye","abilityName":"TestAbility","moduleName":"entry_test","uri":"","type":"","flags":0,"action":"","parameters":{"component.startup.newRules":true,"moduleName":"entry_test","ohos.aafwk.param.callerPid":23550,"ohos.aafwk.param.callerToken":2000,"ohos.aafwk.param.callerUid":2000,"ohos.aafwk.param.requestProcCode":77670592,"ohos.aafwk.param.requestTokenCode":77734515},"entities":[]}
+03-28 17:12:30.117 9934-23534/? I 00000/testTag: launchParam:{"launchReason":1,"lastExitReason":2}
+03-28 17:12:30.117 9934-23534/? I 00000/testTag: start run testcase!!!
+03-28 17:12:30.495 9934-23534/? I 00000/testTag: TestAbility onWindowStageCreate
+03-28 17:12:30.814 9934-23534/? I 00000/testTag: TestAbility onForeground
+03-28 17:12:30.835 9934-23534/? I 00000/testTag: executeShellCommand : err : null
+03-28 17:12:30.835 9934-23534/? I 00000/testTag: executeShellCommand : data : start ability successfully.
+03-28 17:12:30.835 9934-23534/? I 00000/testTag: executeShellCommand : data :
+03-28 17:12:30.979 9934-23534/? I 00000/testTag: Succeeded in loading the content. Data:
+03-28 17:12:30.987 9934-23534/? I 00000/testTag: TestAbility index aboutToAppear
+03-28 17:12:32.088 9934-23534/? I 00000/testTag: TestAbility onBackground
+03-28 17:12:32.495 9934-23534/? I 00000/testTag: Ability onCreate
+03-28 17:12:32.519 9934-23534/? I 00000/testTag: Ability onWindowStageCreate
+03-28 17:12:32.759 9934-23534/? I 00000/testTag: Ability onForeground
+03-28 17:12:33.069 9934-23534/? I 00000/testTag: 加载应用首页成功. Data:
+03-28 17:12:41.150 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/MainPage
+03-28 17:12:41.150 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/MainPage
+03-28 17:12:41.150 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 1
+03-28 17:12:41.158 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: [{"component":{"type":"GridItem"},"event":"onClick","target":"pages/categoryDetail/CategoryDetailPage"},{"component":{"type":"ListItem"},"event":"onClick","target":"pages/commonDetail/DetailPage"},{"component":{"type":"ListItem"},"event":"onClick","target":"pages/topicDetail/TopicDetailPage"},{"component":{"type":"HomeListItemComponent"},"event":"onClick","target":"pages/commonDetail/DetailPage"},{"component":{"type":"Stack"},"event":"onClick","target":"pages/container/ContainerPage"},{"component":{"type":"Stack"},"event":"onClick","target":"pages/test/TestPage"},{"component":{"type":"Stack"},"event":"onClick","target":"pages/hot/CoordinatePage"},{"component":{"type":"Stack"},"event":"onClick","target":"pages/test/TestHorizontalPage"},{"component":{"type":"Stack"},"event":"onClick","target":"pages/test/TestHorizontalPage2"}]
+03-28 17:12:45.901 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: tab: 1
+03-28 17:12:47.903 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/MainPage, grouped size: 4
+03-28 17:12:50.784 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: GridItem, component: null
+03-28 17:12:53.634 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: ListItem, component: [{"backendObjRef":"Component#2"},{"backendObjRef":"Component#3"},{"backendObjRef":"Component#4"},{"backendObjRef":"Component#5"}]
+03-28 17:12:53.635 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=ListItem, total=4, executable=4, noClick=0
+03-28 17:12:53.635 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=4
+03-28 17:12:53.635 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: ListItem
+03-28 17:12:54.705 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 1
+03-28 17:12:55.709 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 1, uniqueTarget: 1
+03-28 17:12:55.709 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/commonDetail/DetailPage
+03-28 17:12:55.709 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/commonDetail/DetailPage
+03-28 17:12:55.709 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/commonDetail/DetailPage
+03-28 17:12:55.712 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:12:55.712 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:12:55.713 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/commonDetail/DetailPage, grouped size: 0
+03-28 17:12:56.717 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:12:57.846 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",1]]
+03-28 17:12:57.846 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: ListItem
+03-28 17:13:00.072 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 2
+03-28 17:13:01.081 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 2, uniqueTarget: 1
+03-28 17:13:01.081 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:13:01.081 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:13:02.095 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:13:03.727 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",2]]
+03-28 17:13:03.727 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 3, component type: ListItem
+03-28 17:13:05.027 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 3
+03-28 17:13:06.084 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 3, uniqueTarget: 1
+03-28 17:13:06.097 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:13:06.097 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:13:07.101 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:13:08.249 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",3]]
+03-28 17:13:08.249 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 4, component type: ListItem
+03-28 17:13:09.198 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 4
+03-28 17:13:10.595 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 4, uniqueTarget: 1
+03-28 17:13:15.690 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: HomeListItemComponent, component: null
+03-28 17:13:19.159 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: Stack, component: [{"backendObjRef":"Component#6"},{"backendObjRef":"Component#7"},{"backendObjRef":"Component#8"},{"backendObjRef":"Component#9"},{"backendObjRef":"Component#10"},{"backendObjRef":"Component#11"}]
+03-28 17:13:19.159 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=Stack, total=6, executable=6, noClick=0
+03-28 17:13:19.159 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=6
+03-28 17:13:19.159 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: Stack
+03-28 17:13:20.832 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 5
+03-28 17:13:21.838 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:13:21.995 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: Stack
+03-28 17:13:24.135 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: tab: 2
+03-28 17:13:26.139 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/MainPage, grouped size: 4
+03-28 17:13:29.846 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: GridItem, component: null
+03-28 17:13:33.559 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: ListItem, component: [{"backendObjRef":"Component#12"},{"backendObjRef":"Component#13"},{"backendObjRef":"Component#14"},{"backendObjRef":"Component#15"},{"backendObjRef":"Component#16"},{"backendObjRef":"Component#17"},{"backendObjRef":"Component#18"},{"backendObjRef":"Component#19"},{"backendObjRef":"Component#20"},{"backendObjRef":"Component#21"},{"backendObjRef":"Component#22"},{"backendObjRef":"Component#23"},{"backendObjRef":"Component#24"},{"backendObjRef":"Component#25"},{"backendObjRef":"Component#26"},{"backendObjRef":"Component#27"}]
+03-28 17:13:33.559 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=ListItem, total=16, executable=16, noClick=0
+03-28 17:13:33.559 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=16
+03-28 17:13:33.559 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: ListItem
+03-28 17:13:35.366 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 6
+03-28 17:13:36.369 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:13:37.371 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: ListItem
+03-28 17:13:38.847 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 7
+03-28 17:13:40.071 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 5, uniqueTarget: 1
+03-28 17:13:40.072 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:13:40.072 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:13:41.077 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:13:42.235 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",5]]
+03-28 17:13:42.235 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 3, component type: ListItem
+03-28 17:13:43.902 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 8
+03-28 17:13:44.932 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 6, uniqueTarget: 1
+03-28 17:13:44.937 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:13:44.937 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:13:45.945 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:13:47.107 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",6]]
+03-28 17:13:47.107 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 4, component type: ListItem
+03-28 17:13:48.795 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 9
+03-28 17:13:49.834 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 7, uniqueTarget: 1
+03-28 17:13:51.844 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 5, component type: ListItem
+03-28 17:13:54.703 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 10
+03-28 17:13:55.706 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:13:56.708 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 6, component type: ListItem
+03-28 17:13:58.429 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 11
+03-28 17:13:59.437 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 8, uniqueTarget: 1
+03-28 17:13:59.437 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:13:59.437 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:14:00.442 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:14:01.629 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",8]]
+03-28 17:14:01.629 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 7, component type: ListItem
+03-28 17:14:03.027 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 12
+03-28 17:14:04.107 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 9, uniqueTarget: 1
+03-28 17:14:04.108 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:14:04.108 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:14:05.112 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:14:06.487 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",9]]
+03-28 17:14:06.488 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 8, component type: ListItem
+03-28 17:14:08.546 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 13
+03-28 17:14:09.551 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 10, uniqueTarget: 1
+03-28 17:14:11.701 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 9, component type: ListItem
+03-28 17:14:14.202 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 14
+03-28 17:14:15.447 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 11, uniqueTarget: 1
+03-28 17:14:17.479 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 10, component type: ListItem
+03-28 17:14:20.493 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 15
+03-28 17:14:21.854 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 12, uniqueTarget: 1
+03-28 17:14:21.854 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:14:21.854 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:14:22.939 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:14:24.107 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",12]]
+03-28 17:14:24.107 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 11, component type: ListItem
+03-28 17:14:25.481 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 16
+03-28 17:14:26.584 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 13, uniqueTarget: 1
+03-28 17:14:28.767 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 12, component type: ListItem
+03-28 17:14:31.533 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 17
+03-28 17:14:33.099 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 14, uniqueTarget: 1
+03-28 17:14:35.186 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 13, component type: ListItem
+03-28 17:14:38.435 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 18
+03-28 17:14:39.572 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 15, uniqueTarget: 1
+03-28 17:14:39.573 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:14:39.573 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:14:40.577 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:14:41.773 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",15]]
+03-28 17:14:41.773 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 14, component type: ListItem
+03-28 17:14:43.577 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 19
+03-28 17:14:44.580 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:14:45.585 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 15, component type: ListItem
+03-28 17:14:47.205 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 20
+03-28 17:14:48.348 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 16, uniqueTarget: 1
+03-28 17:14:48.400 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:14:48.400 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:14:49.681 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:14:50.938 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",16]]
+03-28 17:14:50.939 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 16, component type: ListItem
+03-28 17:14:52.591 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 21
+03-28 17:14:53.596 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 17, uniqueTarget: 1
+03-28 17:14:53.596 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:14:53.596 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:14:54.612 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:14:55.816 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",17]]
+03-28 17:14:59.292 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: HomeListItemComponent, component: null
+03-28 17:15:02.913 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: Stack, component: [{"backendObjRef":"Component#28"},{"backendObjRef":"Component#29"},{"backendObjRef":"Component#30"},{"backendObjRef":"Component#31"},{"backendObjRef":"Component#32"},{"backendObjRef":"Component#33"},{"backendObjRef":"Component#34"},{"backendObjRef":"Component#35"},{"backendObjRef":"Component#36"},{"backendObjRef":"Component#37"},{"backendObjRef":"Component#38"},{"backendObjRef":"Component#39"},{"backendObjRef":"Component#40"},{"backendObjRef":"Component#41"},{"backendObjRef":"Component#42"},{"backendObjRef":"Component#43"},{"backendObjRef":"Component#44"},{"backendObjRef":"Component#45"},{"backendObjRef":"Component#46"},{"backendObjRef":"Component#47"},{"backendObjRef":"Component#48"},{"backendObjRef":"Component#49"},{"backendObjRef":"Component#50"},{"backendObjRef":"Component#51"},{"backendObjRef":"Component#52"},{"backendObjRef":"Component#53"}]
+03-28 17:15:02.913 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=Stack, total=26, executable=26, noClick=0
+03-28 17:15:02.914 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=20
+03-28 17:15:02.914 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: Stack
+03-28 17:15:04.664 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 22
+03-28 17:15:05.667 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:15:06.670 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: Stack
+03-28 17:15:08.442 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 23
+03-28 17:15:09.447 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:15:10.449 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 3, component type: Stack
+03-28 17:15:12.174 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 24
+03-28 17:15:13.462 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:15:13.768 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 4, component type: Stack
+03-28 17:15:14.550 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=Stack, err={"code":17000004}
+03-28 17:15:14.551 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 5, component type: Stack
+03-28 17:15:16.847 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 25
+03-28 17:15:17.871 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:15:18.527 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 6, component type: Stack
+03-28 17:15:19.487 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=Stack, err={"code":17000004}
+03-28 17:15:19.487 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 7, component type: Stack
+03-28 17:15:21.303 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 26
+03-28 17:15:22.306 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:15:23.308 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 8, component type: Stack
+03-28 17:15:24.952 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 27
+03-28 17:15:25.956 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:15:26.960 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 9, component type: Stack
+03-28 17:15:28.703 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 28
+03-28 17:15:29.868 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:15:30.102 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 10, component type: Stack
+03-28 17:15:31.405 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=Stack, err={"code":17000004}
+03-28 17:15:31.405 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 11, component type: Stack
+03-28 17:15:33.711 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 29
+03-28 17:15:34.723 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:15:35.294 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 12, component type: Stack
+03-28 17:15:36.054 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=Stack, err={"code":17000004}
+03-28 17:15:36.055 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 13, component type: Stack
+03-28 17:15:37.990 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 30
+03-28 17:15:39.018 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:15:39.632 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 14, component type: Stack
+03-28 17:15:40.150 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=Stack, err={"code":17000004}
+03-28 17:15:40.158 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 15, component type: Stack
+03-28 17:15:42.258 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 31
+03-28 17:15:43.844 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:15:44.123 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 16, component type: Stack
+03-28 17:15:45.181 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=Stack, err={"code":17000004}
+03-28 17:15:45.182 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 17, component type: Stack
+03-28 17:15:47.245 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 32
+03-28 17:15:48.249 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:15:48.772 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 18, component type: Stack
+03-28 17:15:49.385 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=Stack, err={"code":17000004}
+03-28 17:15:49.385 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 19, component type: Stack
+03-28 17:15:51.207 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 33
+03-28 17:15:52.610 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:15:52.978 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 20, component type: Stack
+03-28 17:15:53.711 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=Stack, err={"code":17000004}
+03-28 17:15:55.834 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: tab: 3
+03-28 17:15:57.837 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/MainPage, grouped size: 4
+03-28 17:16:02.325 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: GridItem, component: null
+03-28 17:16:06.377 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: ListItem, component: [{"backendObjRef":"Component#54"},{"backendObjRef":"Component#55"},{"backendObjRef":"Component#56"},{"backendObjRef":"Component#57"},{"backendObjRef":"Component#58"},{"backendObjRef":"Component#59"},{"backendObjRef":"Component#60"}]
+03-28 17:16:06.377 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=ListItem, total=7, executable=7, noClick=0
+03-28 17:16:06.377 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=7
+03-28 17:16:06.377 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: ListItem
+03-28 17:16:08.671 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 34
+03-28 17:16:10.048 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 18, uniqueTarget: 1
+03-28 17:16:10.078 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:16:10.078 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:16:11.178 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:16:12.455 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",18]]
+03-28 17:16:12.455 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: ListItem
+03-28 17:16:14.911 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 35
+03-28 17:16:16.442 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 19, uniqueTarget: 1
+03-28 17:16:16.443 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:16:16.443 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:16:17.447 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:16:18.654 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",19]]
+03-28 17:16:18.654 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 3, component type: ListItem
+03-28 17:16:21.148 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 36
+03-28 17:16:22.244 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 20, uniqueTarget: 1
+03-28 17:16:22.244 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 2
+03-28 17:16:22.244 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:16:23.446 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:16:24.650 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=1, map=[["pages/commonDetail/DetailPage",20]]
+03-28 17:16:24.650 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 4, component type: ListItem
+03-28 17:16:26.790 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 37
+03-28 17:16:27.985 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 21, uniqueTarget: 1
+03-28 17:16:29.990 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 5, component type: ListItem
+03-28 17:16:33.180 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 38
+03-28 17:16:34.296 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 22, uniqueTarget: 1
+03-28 17:16:36.470 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 6, component type: ListItem
+03-28 17:16:39.883 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 39
+03-28 17:16:40.886 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 23, uniqueTarget: 1
+03-28 17:16:42.892 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 7, component type: ListItem
+03-28 17:16:46.038 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 40
+03-28 17:16:47.271 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 24, uniqueTarget: 1
+03-28 17:16:52.344 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: HomeListItemComponent, component: null
+03-28 17:16:55.761 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: Stack, component: [{"backendObjRef":"Component#61"},{"backendObjRef":"Component#62"},{"backendObjRef":"Component#63"},{"backendObjRef":"Component#64"},{"backendObjRef":"Component#65"},{"backendObjRef":"Component#66"}]
+03-28 17:16:55.761 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=Stack, total=6, executable=6, noClick=0
+03-28 17:16:55.761 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=6
+03-28 17:16:55.761 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: Stack
+03-28 17:16:57.246 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 41
+03-28 17:16:58.249 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:16:58.477 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: Stack
+03-28 17:17:00.614 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: tab: 4
+03-28 17:17:02.618 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/MainPage, grouped size: 4
+03-28 17:17:07.013 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: GridItem, component: null
+03-28 17:17:11.389 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: ListItem, component: [{"backendObjRef":"Component#67"},{"backendObjRef":"Component#68"},{"backendObjRef":"Component#69"},{"backendObjRef":"Component#70"}]
+03-28 17:17:11.389 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=ListItem, total=4, executable=4, noClick=0
+03-28 17:17:11.389 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=4
+03-28 17:17:11.389 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: ListItem
+03-28 17:17:13.673 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 42
+03-28 17:17:14.677 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:17:15.680 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: ListItem
+03-28 17:17:17.767 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 43
+03-28 17:17:18.785 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage isn't target: pages/test/TestPage
+03-28 17:17:18.786 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:17:18.966 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 3, component type: ListItem
+03-28 17:17:19.183 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=ListItem, err={"code":17000004}
+03-28 17:17:19.183 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 4, component type: ListItem
+03-28 17:17:19.304 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: click failed and skipped: type=ListItem, err={"code":17000004}
+03-28 17:17:23.514 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: HomeListItemComponent, component: null
+03-28 17:17:27.666 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: Stack, component: [{"backendObjRef":"Component#71"},{"backendObjRef":"Component#72"},{"backendObjRef":"Component#73"},{"backendObjRef":"Component#74"},{"backendObjRef":"Component#75"},{"backendObjRef":"Component#76"},{"backendObjRef":"Component#77"},{"backendObjRef":"Component#78"},{"backendObjRef":"Component#79"},{"backendObjRef":"Component#80"},{"backendObjRef":"Component#81"},{"backendObjRef":"Component#82"},{"backendObjRef":"Component#83"},{"backendObjRef":"Component#84"},{"backendObjRef":"Component#85"},{"backendObjRef":"Component#86"},{"backendObjRef":"Component#87"},{"backendObjRef":"Component#88"},{"backendObjRef":"Component#89"},{"backendObjRef":"Component#90"}]
+03-28 17:17:27.666 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=Stack, total=20, executable=20, noClick=0
+03-28 17:17:27.666 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=20
+03-28 17:17:27.666 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: Stack
+03-28 17:17:29.972 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 44
+03-28 17:17:30.973 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:17:31.976 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: Stack
+03-28 17:17:34.451 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 45
+03-28 17:17:35.454 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:17:36.456 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 3, component type: Stack
+03-28 17:17:38.812 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 46
+03-28 17:17:39.815 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/hot/CoordinatePage, count: 1, uniqueTarget: 2
+03-28 17:17:39.815 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/hot/CoordinatePage
+03-28 17:17:39.815 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/hot/CoordinatePage
+03-28 17:17:39.815 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/hot/CoordinatePage
+03-28 17:17:39.815 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 3
+03-28 17:17:39.815 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: [{"component":{"type":"ListItem"},"event":"onClick","target":"pages/commonDetail/DetailPage"}]
+03-28 17:17:39.816 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/hot/CoordinatePage, grouped size: 1
+03-28 17:17:42.679 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: ListItem, component: [{"backendObjRef":"Component#91"},{"backendObjRef":"Component#92"}]
+03-28 17:17:42.679 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=ListItem, total=2, executable=2, noClick=0
+03-28 17:17:42.679 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=2
+03-28 17:17:42.679 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: ListItem
+03-28 17:17:43.446 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 47
+03-28 17:17:44.905 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 25, uniqueTarget: 2
+03-28 17:17:46.911 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: ListItem
+03-28 17:17:49.022 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 48
+03-28 17:17:50.422 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/commonDetail/DetailPage, count: 26, uniqueTarget: 2
+03-28 17:17:53.436 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 3
+03-28 17:17:54.690 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=2, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",1]]
+03-28 17:17:54.690 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 4, component type: Stack
+03-28 17:17:57.357 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 49
+03-28 17:17:58.362 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/hot/CoordinatePage, count: 2, uniqueTarget: 2
+03-28 17:17:58.362 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/hot/CoordinatePage
+03-28 17:17:58.362 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/hot/CoordinatePage
+03-28 17:18:00.371 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 5, component type: Stack
+03-28 17:18:03.295 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 50
+03-28 17:18:04.298 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/test/TestPage, count: 1, uniqueTarget: 3
+03-28 17:18:04.298 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/test/TestPage
+03-28 17:18:04.299 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/test/TestPage
+03-28 17:18:04.299 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/test/TestPage
+03-28 17:18:04.299 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 4
+03-28 17:18:04.299 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:18:04.299 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/test/TestPage, grouped size: 0
+03-28 17:18:05.306 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:18:06.499 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=3, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",2],["pages/test/TestPage",1]]
+03-28 17:18:06.499 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 6, component type: Stack
+03-28 17:18:08.843 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 51
+03-28 17:18:09.849 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:18:10.853 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 7, component type: Stack
+03-28 17:18:12.682 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 52
+03-28 17:18:13.686 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:18:14.696 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 8, component type: Stack
+03-28 17:18:16.587 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 53
+03-28 17:18:17.590 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:18:18.594 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 9, component type: Stack
+03-28 17:18:20.450 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 54
+03-28 17:18:21.456 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/hot/CoordinatePage, count: 3, uniqueTarget: 3
+03-28 17:18:21.456 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/hot/CoordinatePage
+03-28 17:18:21.456 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/hot/CoordinatePage
+03-28 17:18:23.466 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 10, component type: Stack
+03-28 17:18:26.674 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 55
+03-28 17:18:27.677 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/test/TestPage, count: 2, uniqueTarget: 3
+03-28 17:18:27.677 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/test/TestPage
+03-28 17:18:27.677 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/test/TestPage
+03-28 17:18:29.686 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 11, component type: Stack
+03-28 17:18:32.608 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 56
+03-28 17:18:33.610 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:18:34.613 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 12, component type: Stack
+03-28 17:18:36.584 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 57
+03-28 17:18:37.589 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:18:38.592 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 13, component type: Stack
+03-28 17:18:40.724 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 58
+03-28 17:18:41.732 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/container/ContainerPage, count: 1, uniqueTarget: 4
+03-28 17:18:41.733 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/container/ContainerPage?containerType=focus
+03-28 17:18:41.733 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/container/ContainerPage?containerType=focus
+03-28 17:18:41.733 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/container/ContainerPage?containerType=focus
+03-28 17:18:41.733 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 5
+03-28 17:18:41.733 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: [{"component":{"type":"GridItem"},"event":"onClick","target":"pages/categoryDetail/CategoryDetailPage"},{"component":{"type":"ListItem"},"event":"onClick","target":"pages/commonDetail/DetailPage"},{"component":{"type":"ListItem"},"event":"onClick","target":"pages/topicDetail/TopicDetailPage"}]
+03-28 17:18:41.733 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/container/ContainerPage?containerType=focus, grouped size: 2
+03-28 17:18:44.844 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: GridItem, component: null
+03-28 17:18:47.958 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: ListItem, component: [{"backendObjRef":"Component#93"},{"backendObjRef":"Component#94"},{"backendObjRef":"Component#95"},{"backendObjRef":"Component#96"},{"backendObjRef":"Component#97"},{"backendObjRef":"Component#98"},{"backendObjRef":"Component#99"},{"backendObjRef":"Component#100"},{"backendObjRef":"Component#101"},{"backendObjRef":"Component#102"},{"backendObjRef":"Component#103"},{"backendObjRef":"Component#104"},{"backendObjRef":"Component#105"},{"backendObjRef":"Component#106"}]
+03-28 17:18:47.958 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=ListItem, total=14, executable=14, noClick=0
+03-28 17:18:47.958 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=14
+03-28 17:18:47.958 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: ListItem
+03-28 17:18:49.241 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 59
+03-28 17:18:50.245 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage isn't target: pages/container/ContainerPage?containerType=focus
+03-28 17:18:50.245 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:18:50.394 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: ListItem
+03-28 17:18:50.395 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: break type loop: cannot return to originPage=pages/container/ContainerPage?containerType=focus, currentPage=pages/MainPage
+03-28 17:18:52.401 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=4, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",3],["pages/test/TestPage",2],["pages/container/ContainerPage",1]]
+03-28 17:18:52.402 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 14, component type: Stack
+03-28 17:18:54.228 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 60
+03-28 17:18:55.230 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/test/TestPage, count: 3, uniqueTarget: 4
+03-28 17:18:55.232 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/test/TestPage
+03-28 17:18:55.232 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/test/TestPage
+03-28 17:18:57.252 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 15, component type: Stack
+03-28 17:19:01.256 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 61
+03-28 17:19:02.262 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/container/ContainerPage, count: 2, uniqueTarget: 4
+03-28 17:19:02.262 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/container/ContainerPage?containerType=topic
+03-28 17:19:02.263 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/container/ContainerPage?containerType=topic
+03-28 17:19:02.263 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/container/ContainerPage?containerType=topic
+03-28 17:19:02.263 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 5
+03-28 17:19:02.263 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: [{"component":{"type":"GridItem"},"event":"onClick","target":"pages/categoryDetail/CategoryDetailPage"},{"component":{"type":"ListItem"},"event":"onClick","target":"pages/commonDetail/DetailPage"},{"component":{"type":"ListItem"},"event":"onClick","target":"pages/topicDetail/TopicDetailPage"}]
+03-28 17:19:02.264 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/container/ContainerPage?containerType=topic, grouped size: 2
+03-28 17:19:04.473 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: GridItem, component: null
+03-28 17:19:06.680 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component type: ListItem, component: [{"backendObjRef":"Component#107"},{"backendObjRef":"Component#108"},{"backendObjRef":"Component#109"},{"backendObjRef":"Component#110"}]
+03-28 17:19:06.680 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: filtered components: type=ListItem, total=4, executable=4, noClick=0
+03-28 17:19:06.680 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: executable components: length=4
+03-28 17:19:06.680 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 1, component type: ListItem
+03-28 17:19:07.031 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 62
+03-28 17:19:08.038 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/topicDetail/TopicDetailPage, count: 1, uniqueTarget: 5
+03-28 17:19:08.038 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/topicDetail/TopicDetailPage?id=819
+03-28 17:19:08.038 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/topicDetail/TopicDetailPage?id=819
+03-28 17:19:08.039 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/topicDetail/TopicDetailPage?id=819
+03-28 17:19:08.042 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 6
+03-28 17:19:08.042 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:19:08.047 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/topicDetail/TopicDetailPage?id=819, grouped size: 0
+03-28 17:19:09.051 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 3
+03-28 17:19:10.198 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=5, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",3],["pages/test/TestPage",3],["pages/container/ContainerPage",2],["pages/topicDetail/TopicDetailPage",1]]
+03-28 17:19:10.198 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 2, component type: ListItem
+03-28 17:19:10.520 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 63
+03-28 17:19:11.524 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/topicDetail/TopicDetailPage, count: 2, uniqueTarget: 5
+03-28 17:19:11.524 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/topicDetail/TopicDetailPage?id=832
+03-28 17:19:11.524 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/topicDetail/TopicDetailPage?id=832
+03-28 17:19:11.524 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/topicDetail/TopicDetailPage?id=832
+03-28 17:19:11.524 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 6
+03-28 17:19:11.524 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:19:11.525 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/topicDetail/TopicDetailPage?id=832, grouped size: 0
+03-28 17:19:12.529 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 3
+03-28 17:19:13.673 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=5, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",3],["pages/test/TestPage",3],["pages/container/ContainerPage",2],["pages/topicDetail/TopicDetailPage",2]]
+03-28 17:19:13.673 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 3, component type: ListItem
+03-28 17:19:13.946 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 64
+03-28 17:19:14.950 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/topicDetail/TopicDetailPage, count: 3, uniqueTarget: 5
+03-28 17:19:14.950 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/topicDetail/TopicDetailPage?id=860
+03-28 17:19:14.950 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/topicDetail/TopicDetailPage?id=860
+03-28 17:19:14.950 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/topicDetail/TopicDetailPage?id=860
+03-28 17:19:14.950 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 6
+03-28 17:19:14.950 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:19:14.950 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/topicDetail/TopicDetailPage?id=860, grouped size: 0
+03-28 17:19:15.969 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 3
+03-28 17:19:17.127 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=5, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",3],["pages/test/TestPage",3],["pages/container/ContainerPage",2],["pages/topicDetail/TopicDetailPage",3]]
+03-28 17:19:17.128 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 4, component type: ListItem
+03-28 17:19:17.415 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 65
+03-28 17:19:18.419 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/topicDetail/TopicDetailPage, count: 4, uniqueTarget: 5
+03-28 17:19:18.419 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/topicDetail/TopicDetailPage?id=664
+03-28 17:19:18.419 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/topicDetail/TopicDetailPage?id=664
+03-28 17:19:18.419 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/topicDetail/TopicDetailPage?id=664
+03-28 17:19:18.419 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 6
+03-28 17:19:18.419 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:19:18.419 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/topicDetail/TopicDetailPage?id=664, grouped size: 0
+03-28 17:19:19.424 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 3
+03-28 17:19:20.585 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=5, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",3],["pages/test/TestPage",3],["pages/container/ContainerPage",2],["pages/topicDetail/TopicDetailPage",4]]
+03-28 17:19:21.590 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:19:22.754 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=5, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",3],["pages/test/TestPage",3],["pages/container/ContainerPage",2],["pages/topicDetail/TopicDetailPage",4]]
+03-28 17:19:22.754 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 16, component type: Stack
+03-28 17:19:24.666 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 66
+03-28 17:19:25.672 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/test/TestPage, count: 4, uniqueTarget: 5
+03-28 17:19:25.672 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/test/TestPage
+03-28 17:19:25.673 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/test/TestPage
+03-28 17:19:27.682 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 17, component type: Stack
+03-28 17:19:30.576 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 67
+03-28 17:19:31.580 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/hot/CoordinatePage, count: 4, uniqueTarget: 5
+03-28 17:19:31.580 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/hot/CoordinatePage
+03-28 17:19:31.581 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/hot/CoordinatePage
+03-28 17:19:33.589 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 18, component type: Stack
+03-28 17:19:36.969 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 68
+03-28 17:19:37.974 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/test/TestHorizontalPage, count: 1, uniqueTarget: 6
+03-28 17:19:37.975 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/test/TestHorizontalPage
+03-28 17:19:37.975 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/test/TestHorizontalPage
+03-28 17:19:37.975 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/test/TestHorizontalPage
+03-28 17:19:37.976 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 7
+03-28 17:19:37.976 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:19:37.976 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/test/TestHorizontalPage, grouped size: 0
+03-28 17:19:38.979 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:19:40.144 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=6, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",4],["pages/test/TestPage",4],["pages/container/ContainerPage",2],["pages/topicDetail/TopicDetailPage",4],["pages/test/TestHorizontalPage",1]]
+03-28 17:19:40.145 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 19, component type: Stack
+03-28 17:19:42.640 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 69
+03-28 17:19:43.646 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit: pages/test/TestHorizontalPage2, count: 1, uniqueTarget: 7
+03-28 17:19:43.646 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is target: pages/test/TestHorizontalPage2
+03-28 17:19:43.646 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: curPage: pages/test/TestHorizontalPage2
+03-28 17:19:43.646 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage: pages/test/TestHorizontalPage2
+03-28 17:19:43.646 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: pages vis_url: 8
+03-28 17:19:43.646 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: children: []
+03-28 17:19:43.646 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: doAction page: pages/test/TestHorizontalPage2, grouped size: 0
+03-28 17:19:44.651 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: router stack length: 2
+03-28 17:19:45.879 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=7, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",4],["pages/test/TestPage",4],["pages/container/ContainerPage",2],["pages/topicDetail/TopicDetailPage",4],["pages/test/TestHorizontalPage",1],["pages/test/TestHorizontalPage2",1]]
+03-28 17:19:45.880 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: component no: 20, component type: Stack
+03-28 17:19:48.591 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: action count: 70
+03-28 17:19:49.594 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: currentPage is curPage: pages/MainPage
+03-28 17:19:52.608 9934-23534/com.winwang.harmonyOpenEye I 00000/testTag: target hit summary: unique=7, map=[["pages/commonDetail/DetailPage",26],["pages/hot/CoordinatePage",4],["pages/test/TestPage",4],["pages/container/ContainerPage",2],["pages/topicDetail/TopicDetailPage",4],["pages/test/TestHorizontalPage",1],["pages/test/TestHorizontalPage2",1]]
