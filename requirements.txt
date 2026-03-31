@@ -4,3 +4,6 @@ langchain-openai==0.3.17
 langgraph==0.2.67
 tree-sitter
 tree-sitter-typescript
+numpy
+matplotlib
+openpyxl

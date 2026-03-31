@@ -125,5 +125,6 @@
       "event": "onClick",
       "target": "pages/UpdatePasswordPage"
     }
+		// 缺一条边
   ]
 }

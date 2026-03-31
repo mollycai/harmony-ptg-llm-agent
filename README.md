@@ -241,6 +241,7 @@ flowchart TD
 1. SplashPage -> MainPage 是否算一条边
 2. 原作者通过静态解析统计的结果可能存在偏差的项目：Biandan、MultiDeviceMusic、Msea-HarmonyOS
 3. Msea-HarmonyOS 属于是prompt规则的问题，然后多统计了2条边（有2条重复）
+4. **当前的架构不能算闭环的agent，因为没有反馈机制（但是在当前的场景下，添加一定的反馈机制也未必能见的效果能有多大的提升，同时还会耗费成倍的token），暂时将其定义为LLM-driven semi-agentic workflow（LLM驱动的半自动化工作流）**
 
 ## 原论文可能存在的问题
 1. Harmony-arts-movie-music-app-ui项目，静态解析pages/IndexPage.ets文件的结果，代码中没有显示的路由跳转规则，但通过静态解析仍然能解析出，同时其他页面的一些跳转关系，通过静态解析无法解析出来（例如：pages/RegisterPage.ets等），但原作者仍然将其FNR率统计和计算为0%。
@@ -249,7 +250,6 @@ flowchart TD
 1. 对于嵌套组件，如何准确识别跳转的目标，例如，pages/MainPage.ets中的代码，明面上没有与路由跳转有关的代码，但是其中嵌套着一些组件，例如pages/HomePage.ets，这个组件中则包含跳转到pages/DetailPage.ets的逻辑，则期望输出的跳转关系是pages/MainPage.ets -> pages/DetailPage.ets。这里可能涉及到上下文管理的问题，如果在每次交互中，只维护PTG，不维护项目代码的上下文，遇到一些import之类的语句（引入组件），大模型会忘记子组件与当前页面的关系；如果将整个项目上下文喂给大模型，则会出现上下文过长，产生幻觉的问题。目前的想法：全程维护PTG，同时让大模型只记住与一个主页面关联的代码上下文，当大模型开始探索下个主页面的代码时，则忘记上一个的上下文（主页面之间不会相互嵌套，不会出现一个主页面的代码中import另一个主页面，只是保留着路由跳转的关系，例如：一个主页面，跳转到另一个主页面）。
 2. 如果从头到尾分析整个项目，会白白浪费很多token，如果设置一些黑名单，不让大模型分析，则需要反复手动配置，也可能会漏掉一些文件 -> 在分析之前，提前采用正则匹配检索是否存在router的内容，如果有再调用大模型分析，没有就跳过。
 3. 大模型在分析长代码文件时，会难以提取上下文 -> 拆分代码，按语法边界切块，并采用重叠窗口
-4. 大模型在分析和提取时必定会存在不稳定的现象（回检？待解决）
 
 ## 统计指标
 参考基于模型的HarmonyOS应用自动化测试论文，包含衡量基于静态解析的PTG质量基本的指标：TP、FP、FN、Prec.。对于衡量由大模型生成PTG的质量，添加这几个指标：
@@ -269,3 +269,7 @@ flowchart TD
 ## 自动化测试
 1. 配置 DevEco 和 HarmonyOS 开发所需要的包，以及如何操作执行自动化测试，可以参考：https://github.com/sqlab-sustech/HarmonyOS-App-Test
 2. 将/test文件夹下的所有文件，复制到对应项目里，例如：/Users/edwincai/MUST/projects/HarmoneyOpenEye/entry/src/ohosTest/ets/test，然后可以设置时间，开始执行测试，测试结果可以筛选查看testTag中的内容。
+
+## 实验数据
+1. 实验数据和图表绘制详见 /data
+2. 实验的日志样例详见 /log
