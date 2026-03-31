@@ -27,15 +27,15 @@ def load_sheet(sheet_name):
 
     times = np.array([r[0] for r in data])
 
-    la_sc = np.array([parse_percent(r[1]) for r in data])
-    la_pc = np.array([parse_percent(r[2]) for r in data])
-    la_an = np.array([r[3] for r in data])
+    lp_sc = np.array([parse_percent(r[1]) for r in data])
+    lp_pc = np.array([parse_percent(r[2]) for r in data])
+    lp_an = np.array([r[3] for r in data])
 
     other_sc = np.array([parse_percent(r[4]) for r in data])
     other_pc = np.array([parse_percent(r[5]) for r in data])
     other_an = np.array([r[6] for r in data])
 
-    return times, la_sc, la_pc, la_an, other_sc, other_pc, other_an
+    return times, lp_sc, lp_pc, lp_an, other_sc, other_pc, other_an
 
 # ======================
 # 4. 配色（统一）
@@ -58,29 +58,29 @@ plt.rcParams.update({
 # ======================
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-sheet_names = ["LAMT vs SAMT1", "LAMT vs SAMT2"]
-titles = ["(a) LAMT vs SAMT1", "(b) LAMT vs SAMT2"]
+sheet_names = ["LMT vs SAMT1", "LMT vs SAMT2"]
+titles = ["(a) LMT vs SAMT1", "(b) LMT vs SAMT2"]
 
 for i, (ax_left, sheet_name, title) in enumerate(zip(axes, sheet_names, titles)):
 
     # ---- 数据 ----
-    times, la_sc, la_pc, la_an, other_sc, other_pc, other_an = load_sheet(sheet_name)
+    times, lp_sc, lp_pc, lp_an, other_sc, other_pc, other_an = load_sheet(sheet_name)
 
     ax_right = ax_left.twinx()
 
     # ---- 左轴：AN ----
-    l3, = ax_left.plot(times, la_an, color=COLOR_AN, marker='o',
-                      linestyle='-', label='LAMT AN')
+    l3, = ax_left.plot(times, lp_an, color=COLOR_AN, marker='o',
+                      linestyle='-', label='LMT AN')
 
     l6, = ax_left.plot(times, other_an, color=COLOR_AN, marker='o',
                       linestyle='--', label='SAMT AN')
 
     # ---- 右轴：Coverage ----
-    l1, = ax_right.plot(times, la_sc, color=COLOR_SC, marker='x',
-                       linestyle='-', label='LAMT SC')
+    l1, = ax_right.plot(times, lp_sc, color=COLOR_SC, marker='x',
+                       linestyle='-', label='LMT SC')
 
-    l2, = ax_right.plot(times, la_pc, color=COLOR_PC, marker='^',
-                       linestyle='-', label='LAMT PC')
+    l2, = ax_right.plot(times, lp_pc, color=COLOR_PC, marker='^',
+                       linestyle='-', label='LMT PC')
 
     l4, = ax_right.plot(times, other_sc, color=COLOR_SC, marker='x',
                        linestyle='--', label='SAMT SC')
@@ -99,8 +99,8 @@ for i, (ax_left, sheet_name, title) in enumerate(zip(axes, sheet_names, titles))
     ax_right.set_ylim(20, 80)
     
     ax_right.set_ylim(
-			min(la_sc.min(), other_sc.min(), la_pc.min(), other_pc.min()) - 2,
-			max(la_sc.max(), other_sc.max(), la_pc.max(), other_pc.max()) + 2
+			min(lp_sc.min(), other_sc.min(), lp_pc.min(), other_pc.min()) - 2,
+			max(lp_sc.max(), other_sc.max(), lp_pc.max(), other_pc.max()) + 2
 		)
 
     # ---- 标题 ----

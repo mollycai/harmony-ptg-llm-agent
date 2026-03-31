@@ -6,7 +6,7 @@ from openpyxl import load_workbook
 # 1. 读取 Excel
 # ======================
 file_path = "data/results.xlsx"   # 修改为你的路径
-sheet_name = "LAMT vs RT"
+sheet_name = "LMT vs RT"
 
 wb = load_workbook(file_path)
 sheet = wb[sheet_name]
@@ -26,9 +26,9 @@ def parse_percent(x):
 
 times = np.array([r[0] for r in data])
 
-la_sc = np.array([parse_percent(r[1]) for r in data])
-la_pc = np.array([parse_percent(r[2]) for r in data])
-la_an = np.array([r[3] for r in data])
+lp_sc = np.array([parse_percent(r[1]) for r in data])
+lp_pc = np.array([parse_percent(r[2]) for r in data])
+lp_an = np.array([r[3] for r in data])
 
 rand_sc = np.array([parse_percent(r[4]) for r in data])
 rand_pc = np.array([parse_percent(r[5]) for r in data])
@@ -60,10 +60,10 @@ fig, ax_left = plt.subplots(figsize=(8.2, 5.4))
 ax_right = ax_left.twinx()
 
 # ---- 左轴：AN ----
-l3, = ax_left.plot(times, la_an,
+l3, = ax_left.plot(times, lp_an,
                   color=COLOR_AN, marker='o',
                   linestyle='-',
-                  label='LA Model-based Testing AN')
+                  label='LLM PTG-based Testing AN')
 
 l6, = ax_left.plot(times, rand_an,
                   color=COLOR_AN, marker='o',
@@ -71,15 +71,15 @@ l6, = ax_left.plot(times, rand_an,
                   label='Random Testing AN')
 
 # ---- 右轴：Coverage ----
-l1, = ax_right.plot(times, la_sc,
+l1, = ax_right.plot(times, lp_sc,
                    color=COLOR_SC, marker='x',
                    linestyle='-',
-                   label='LA Model-based Testing SC')
+                   label='LLM PTG-based Testing SC')
 
-l2, = ax_right.plot(times, la_pc,
+l2, = ax_right.plot(times, lp_pc,
                    color=COLOR_PC, marker='^',
                    linestyle='-',
-                   label='LA Model-based Testing PC')
+                   label='LLM PTG-based Testing PC')
 
 l4, = ax_right.plot(times, rand_sc,
                    color=COLOR_SC, marker='x',
@@ -101,8 +101,8 @@ ax_right.set_ylabel("Coverage (%)")
 ax_right.set_ylim(20, 80)
 
 ax_right.set_ylim(
-    min(la_sc.min(), rand_sc.min(), la_pc.min(), rand_pc.min()) - 2,
-    max(la_sc.max(), rand_sc.max(), la_pc.max(), rand_pc.max()) + 2
+    min(lp_sc.min(), rand_sc.min(), lp_pc.min(), rand_pc.min()) - 2,
+    max(lp_sc.max(), rand_sc.max(), lp_pc.max(), rand_pc.max()) + 2
 )
 
 # 网格
