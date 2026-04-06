@@ -36,14 +36,14 @@
       "component": {
         "type": "__Common__"
       },
-      "event": "aboutToAppear", // 事件错误
+      "event": "aboutToAppear",
       "target": "pages/IndexPage"
     },
     {
       "component": {
         "type": "__Common__"
       },
-      "event": "aboutToAppear", // 事件错误
+      "event": "aboutToAppear",
       "target": "pages/LoginPage"
     }
   ],
@@ -52,7 +52,7 @@
       "component": {
         "type": "__Common__"
       },
-      "event": "onClick", // 事件错误
+      "event": "onClick",
       "target": "pages/MusicIndexPage"
     },
     {
@@ -120,11 +120,17 @@
   "pages/UserPage": [
     {
       "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/LoginPage"
+    },
+    {
+      "component": {
         "type": "Text"
       },
       "event": "onClick",
       "target": "pages/UpdatePasswordPage"
     }
-		// 缺一条边
   ]
 }

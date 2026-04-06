@@ -2,7 +2,7 @@
   "pages/ForgetPasswordPage": [
     {
       "component": {
-        "type": "__Common__"
+        "type": "Text"
       },
       "event": "onClick",
       "target": "pages/ResetPasswordPage"
@@ -11,7 +11,7 @@
   "pages/IndexPage": [
     {
       "component": {
-        "type": "MovieItemComponent" // 组件错误
+        "type": "Column"
       },
       "event": "onClick",
       "target": "pages/MovieDetailPage"
@@ -36,23 +36,23 @@
       "component": {
         "type": "__Common__"
       },
-      "event": "onAppear", // 事件错误
+      "event": "aboutToAppear",
       "target": "pages/IndexPage"
     },
     {
       "component": {
         "type": "__Common__"
       },
-      "event": "onAppear", // 事件错误
+      "event": "aboutToAppear",
       "target": "pages/LoginPage"
     }
   ],
   "pages/LoginPage": [
     {
       "component": {
-        "type": "Text"
+        "type": "__Common__"
       },
-      "event": "onClick", // 事件错误
+      "event": "onClick",
       "target": "pages/MusicIndexPage"
     },
     {
@@ -73,7 +73,7 @@
   "pages/MovieDetailPage": [
     {
       "component": {
-        "type": "Image" // 组件错误
+        "type": "Row"
       },
       "event": "onClick",
       "target": "pages/MoviePlayPage"
@@ -83,7 +83,7 @@
   "pages/MovieSearchPage": [
     {
       "component": {
-        "type": "MovieItemComponent" // 组件错误
+        "type": "Column"
       },
       "event": "onClick",
       "target": "pages/MovieDetailPage"
@@ -92,7 +92,7 @@
   "pages/MovieUserPage": [
     {
       "component": {
-        "type": "__Common__"
+        "type": "Button"
       },
       "event": "onClick",
       "target": "pages/MovieLoginPage"
@@ -101,7 +101,7 @@
   "pages/RegisterPage": [
     {
       "component": {
-        "type": "__Common__"
+        "type": "Text"
       },
       "event": "onClick",
       "target": "pages/IndexPage"
@@ -110,7 +110,7 @@
   "pages/ResetPasswordPage": [
     {
       "component": {
-        "type": "__Common__"
+        "type": "Text"
       },
       "event": "onClick",
       "target": "pages/IndexPage"

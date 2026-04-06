@@ -1,0 +1,46 @@
+{
+  "pages/Index": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/profile/LoginPage"
+    },
+    {
+      "component": {
+        "type": "Navigation"
+      },
+      "event": "action",
+      "target": "pages/profile/SettingPage"
+    }
+  ],
+  "pages/home/HomePage": [],
+  "pages/notice/NoticePage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/profile/LoginPage"
+    }
+  ],
+  "pages/profile/LoginPage": [],
+  "pages/profile/ProfilePage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/profile/LoginPage"
+    },
+    {
+      "component": {
+        "type": "Navigation"
+      },
+      "event": "onAction",
+      "target": "pages/profile/SettingPage"
+    }
+  ],
+  "pages/profile/SettingPage": []
+}

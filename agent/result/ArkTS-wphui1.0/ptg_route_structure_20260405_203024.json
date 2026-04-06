@@ -1,0 +1,12 @@
+{
+  "pages/Index": [
+    {
+      "component": {
+        "type": "FlowItem"
+      },
+      "event": "onClick",
+      "target": "pages/components/CardDetailPage"
+    }
+  ],
+  "pages/components/CardDetailPage": []
+}

@@ -30,35 +30,35 @@
     },
     {
       "component": {
-        "type": "__Common__"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/container/ContainerPage"
     },
     {
       "component": {
-        "type": "__Common__"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/test/TestPage"
     },
     {
       "component": {
-        "type": "__Common__"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/hot/CoordinatePage"
     },
     {
       "component": {
-        "type": "__Common__"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/test/TestHorizontalPage"
     },
     {
       "component": {
-        "type": "__Common__"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/test/TestHorizontalPage2"
@@ -69,14 +69,14 @@
       "component": {
         "type": "__Common__"
       },
-      "event": "onTimeout",
+      "event": "aboutToAppear",
       "target": "pages/MainPage"
     }
   ],
   "pages/categoryDetail/CategoryDetailPage": [
     {
       "component": {
-        "type": "HomeListItemComponent"
+        "type": "ListItem"
       },
       "event": "onClick",
       "target": "pages/commonDetail/DetailPage"

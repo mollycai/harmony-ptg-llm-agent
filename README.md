@@ -1,4 +1,4 @@
-# 基于大模型生成PTG的HarmonyOS应用自动化测试
+# 基于大语言模型工作流生成PTG的HarmonyOS应用自动化测试
 
 ## 数据集（被测应用）
 - HarmoneyOpenEye: https://github.com/WinWang/HarmoneyOpenEye
@@ -61,7 +61,7 @@ APP_CONFIG = {
 }
 ``` 
 
-## 纯LLM交互（此版本已废弃，在这只是做个对比）
+## 纯LLM一次性交互（此版本已废弃，在这只是做个对比）
 
 ### prompt内容
 prompt都由一下三部分组成：
@@ -74,12 +74,7 @@ prompt都由一下三部分组成：
 python llm/workflow.py --deepseek --HarmoneyOpenEye
 ```
 
-## RAG & Agent增强版本（重构代码，与之前的纯LLM做对比）
-
-### 执行方式
-```bash
-python agent/workflow.py --deepseek --HarmoneyOpenEye
-```
+## RAG & LLM-Based workflow增强版本（重构代码，与之前的纯LLM做对比）
 
 ### RAG
 1. 知识补充：HarmonyOS应用相关文档，补充AI ArkTS相关的知识，识别PTG中与路由跳转相关的逻辑。
@@ -87,7 +82,7 @@ python agent/workflow.py --deepseek --HarmoneyOpenEye
 
 待实现，目前觉得不是很有必要。
 
-### Multi-Agent（当前实现）
+###  LLM-Based workflow（当前实现）
 采用 LangChain + 工具化工作流实现 PTG 抽取与校验，当前架构是“状态机编排 + 局部自主决策”：
 - `RouteStructureAgent`：召回优先，负责发现尽可能完整的候选边；
 - `RouteValidationAgent`：精度收口，负责规则化清洗、去重与过滤无效边。
@@ -271,5 +266,5 @@ flowchart TD
 2. 将/test文件夹下的所有文件，复制到对应项目里，例如：/Users/edwincai/MUST/projects/HarmoneyOpenEye/entry/src/ohosTest/ets/test，然后可以设置时间，开始执行测试，测试结果可以筛选查看testTag中的内容。
 
 ## 实验数据
-1. 实验数据和图表绘制详见 /data
+1. LLM-constructed PTG 结果数据详见 /result, static analysis 复现数据详见/static_analysis, 自动化测试实验数据和图表绘制详见 /data
 2. 实验的日志样例详见 /log

@@ -30,35 +30,35 @@
     },
     {
       "component": {
-        "type": "itemBuilder"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/container/ContainerPage"
     },
     {
       "component": {
-        "type": "itemBuilder"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/test/TestPage"
     },
     {
       "component": {
-        "type": "itemBuilder"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/hot/CoordinatePage"
     },
     {
       "component": {
-        "type": "itemBuilder"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/test/TestHorizontalPage"
     },
     {
       "component": {
-        "type": "itemBuilder"
+        "type": "Stack"
       },
       "event": "onClick",
       "target": "pages/test/TestHorizontalPage2"
@@ -67,7 +67,7 @@
   "pages/SplashPage": [
     {
       "component": {
-        "type": "SplashPage"
+        "type": "__Common__"
       },
       "event": "aboutToAppear",
       "target": "pages/MainPage"

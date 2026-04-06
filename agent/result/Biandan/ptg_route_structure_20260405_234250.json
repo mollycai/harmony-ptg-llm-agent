@@ -4,8 +4,15 @@
       "component": {
         "type": "__Common__"
       },
-      "event": "onClick",
+      "event": "aboutToAppear",
       "target": "pages/guide"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "onChanged",
+      "target": "pages/setting"
     },
     {
       "component": {
@@ -48,7 +55,7 @@
   "pages/guide": [
     {
       "component": {
-        "type": "__Common__"
+        "type": "Button"
       },
       "event": "onClick",
       "target": "pages/Index"
