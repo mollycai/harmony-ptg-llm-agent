@@ -1,132 +1,80 @@
+import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
-from openpyxl import load_workbook
 
-# ======================
-# 1. 读取 Excel
-# ======================
+# 配色方案 1：冷色学术风（蓝-青-金）
+PRIMARY_SC = '#1D4E89'
+PRIMARY_PC = '#2A9D8F'
+COMPARE_SC = '#7AA6D1'
+COMPARE_PC = '#8FD0C7'
+PRIMARY_LINE = '#1D4E89'
+COMPARE_LINE = '#C26A3D'
+AN_PRIMARY = '#287271'
+AN_COMPARE = '#C26A3D'
+TIME_CMAP = 'cividis'
+
+# ===== 1. 读取Excel =====
 file_path = "data/results.xlsx"   # 修改为你的路径
 sheet_name = "LMT vs RT"
 
-wb = load_workbook(file_path)
-sheet = wb[sheet_name]
+df = pd.read_excel(file_path, sheet_name=sheet_name)
 
-rows = list(sheet.iter_rows(values_only=True))
-headers = rows[0]
-data = rows[1:]
+# ===== 2. 数据提取 =====
+time = df['Times(s)']
 
-# ======================
-# 2. 数据解析（自动处理 %）
-# ======================
-def parse_percent(x):
-    if isinstance(x, str):
-        return float(x.replace('%', ''))
-    else:
-        return float(x) * 100 if float(x) <= 1 else float(x)
+llm_sc = df['LLM PTG-based Testing SC']
+llm_pc = df['LLM PTG-based Testing PC']
+llm_an = df['LLM PTG-based Testing AN']
 
-times = np.array([r[0] for r in data])
+rand_sc = df['Random Testing SC']
+rand_pc = df['Random Testing PC']
+rand_an = df['Random Testing AN']
 
-lp_sc = np.array([parse_percent(r[1]) for r in data])
-lp_pc = np.array([parse_percent(r[2]) for r in data])
-lp_an = np.array([r[3] for r in data])
+# 创建子图
+fig, axs = plt.subplots(1, 3, figsize=(15,4))
 
-rand_sc = np.array([parse_percent(r[4]) for r in data])
-rand_pc = np.array([parse_percent(r[5]) for r in data])
-rand_an = np.array([r[6] for r in data])
+# ===================== (a) Time → Coverage =====================
+axs[0].plot(time, llm_sc, marker='o', color=PRIMARY_SC, label='LLMPTG-SC')
+axs[0].plot(time, llm_pc, marker='s', color=PRIMARY_PC, label='LLMPTG-PC')
 
-# ======================
-# 3. 配色（WPS风格）
-# ======================
-COLOR_SC = "#FFC000"   # 黄色
-COLOR_PC = "#FF0000"   # 红色
-COLOR_AN = "#4472C4"   # 蓝色
+axs[0].plot(time, rand_sc, marker='o', linestyle='--', color=COMPARE_SC, label='Random-SC', alpha=0.9)
+axs[0].plot(time, rand_pc, marker='s', linestyle='--', color=COMPARE_PC, label='Random-PC', alpha=0.9)
 
-# ======================
-# 4. 论文风格
-# ======================
-plt.rcParams.update({
-    "font.family": "serif",
-    "font.size": 12,
-    "axes.labelsize": 16,
-    "legend.fontsize": 11,
-    "figure.dpi": 200,
-    "savefig.dpi": 400,
-})
+axs[0].set_xlabel('Time (sec)')
+axs[0].set_ylabel('Coverage (%)')
+axs[0].set_title('(a) Coverage vs Time')
+axs[0].grid(alpha=0.3)
+axs[0].legend(fontsize=8)
 
-# ======================
-# 5. 双轴绘图
-# ======================
-fig, ax_left = plt.subplots(figsize=(8.2, 5.4))
-ax_right = ax_left.twinx()
+# ===================== (b) Time → AN =====================
+axs[1].plot(time, llm_an, marker='o', color=AN_PRIMARY, label='LLMPTG')
+axs[1].plot(time, rand_an, marker='x', linestyle='--', color=AN_COMPARE, label='Random')
 
-# ---- 左轴：AN ----
-l3, = ax_left.plot(times, lp_an,
-                  color=COLOR_AN, marker='o',
-                  linestyle='-',
-                  label='LLM PTG-based Testing AN')
+axs[1].set_xlabel('Time (sec)')
+axs[1].set_ylabel('Action Number (AN)')
+axs[1].set_title('(b) Actions vs Time')
+axs[1].grid(alpha=0.3)
+axs[1].legend(fontsize=8)
 
-l6, = ax_left.plot(times, rand_an,
-                  color=COLOR_AN, marker='o',
-                  linestyle='--',
-                  label='Random Testing AN')
+# ===================== (c) AN → Coverage =====================
+sc = axs[2].scatter(llm_an, llm_pc, c=time, cmap=TIME_CMAP, s=60, label='LLMPTG')
+axs[2].plot(llm_an, llm_pc, color=PRIMARY_LINE)
 
-# ---- 右轴：Coverage ----
-l1, = ax_right.plot(times, lp_sc,
-                   color=COLOR_SC, marker='x',
-                   linestyle='-',
-                   label='LLM PTG-based Testing SC')
+axs[2].scatter(rand_an, rand_pc, c=time, cmap=TIME_CMAP, marker='x', s=60, label='Random')
+axs[2].plot(rand_an, rand_pc, linestyle='--', color=COMPARE_LINE)
 
-l2, = ax_right.plot(times, lp_pc,
-                   color=COLOR_PC, marker='^',
-                   linestyle='-',
-                   label='LLM PTG-based Testing PC')
+axs[2].set_xlabel('Action Number (AN)')
+axs[2].set_ylabel('Path Coverage (PC %)')
+axs[2].set_title('(c) Efficiency (AN vs PC)')
+axs[2].grid(alpha=0.3)
+axs[2].legend(fontsize=8)
 
-l4, = ax_right.plot(times, rand_sc,
-                   color=COLOR_SC, marker='x',
-                   linestyle='--',
-                   label='Random Testing SC')
+# colorbar（时间）
+cbar = fig.colorbar(sc, ax=axs[2])
+cbar.set_label('Time (sec)')
 
-l5, = ax_right.plot(times, rand_pc,
-                   color=COLOR_PC, marker='^',
-                   linestyle='--',
-                   label='Random Testing PC')
-
-# ======================
-# 6. 坐标轴（自适应）
-# ======================
-ax_left.set_xlabel("Time (sec.)")
-ax_left.set_ylabel("Action Number (AN)")
-ax_right.set_ylabel("Coverage (%)")
-
-ax_right.set_ylim(20, 80)
-
-ax_right.set_ylim(
-    min(lp_sc.min(), rand_sc.min(), lp_pc.min(), rand_pc.min()) - 2,
-    max(lp_sc.max(), rand_sc.max(), lp_pc.max(), rand_pc.max()) + 2
-)
-
-# 网格
-ax_left.grid(True, axis='y', linestyle='-', alpha=0.3)
-
-# ======================
-# 7. 图例（关键点）
-# ======================
-legend_lines = [l1, l2, l3, l4, l5, l6]
-legend_labels = [line.get_label() for line in legend_lines]
-
-ax_left.legend(
-    legend_lines,
-    legend_labels,
-    loc='upper left',
-    bbox_to_anchor=(0.02, 0.98),   # 不遮挡关键
-    frameon=True
-)
-
-# ======================
-# 8. 保存
-# ======================
+# 布局
 plt.tight_layout()
 
-plt.savefig("data/diagram_1.png", bbox_inches="tight")  # 预览
+plt.savefig("data/diagram_1.png", bbox_inches="tight")
 
 plt.show()

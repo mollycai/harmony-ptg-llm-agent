@@ -7,22 +7,21 @@ LLM_CONFIG = {
         "chatOptions": {
             "temperature": 0,
             "top_p": 1,
-            "max_tokens": 8192,
             "timeout": 180,
             "max_retries": 2,
         },
     },
-    "glm": {
-        "baseURL": "https://open.bigmodel.cn/api/paas/v4/",
-        "apiKeyEnv": "GLM_API_KEY",
-        "model": "glm-4.7",
-        "preprocessModel": "glm-4.7",
-    },
-    "doubao": {
-        "baseURL": "https://ark.cn-beijing.volces.com/api/v3",
-        "apiKeyEnv": "DOUBAO_API_KEY",
-        "model": "doubao-seed-1-8-251215",
-        "preprocessModel": "doubao-seed-1-8-251215",
+    "gpt": {
+        "baseURL": "https://api.gptsapi.net/v1",
+        "apiKeyEnv": "OPENAI_API_KEY",
+        "model": "gpt-5.4",
+        "preprocessModel": "gpt-5.4",
+        "chatOptions": {
+            "temperature": 0,
+            "top_p": 1,
+            "timeout": 180,
+            "max_retries": 2,
+        },
     },
 }
 

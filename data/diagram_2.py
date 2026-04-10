@@ -1,130 +1,78 @@
+import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
-from openpyxl import load_workbook
 
-# ======================
-# 1. 读取 Excel
-# ======================
-file_path = "data/results.xlsx"
-wb = load_workbook(file_path)
+# 配色方案 2：暖色对比风（酒红-橙-灰蓝）
+PRIMARY_SC = '#8C1C13'
+PRIMARY_PC = '#E07A1F'
+COMPARE_SC = '#6C8EAD'
+COMPARE_PC = '#A3B8CC'
+PRIMARY_LINE = '#8C1C13'
+COMPARE_LINE = '#4F6D7A'
+AN_PRIMARY = '#B85042'
+AN_COMPARE = '#4F6D7A'
+TIME_CMAP = 'plasma'
 
-# ======================
-# 2. 百分比解析
-# ======================
-def parse_percent(x):
-    if isinstance(x, str):
-        return float(x.replace('%', ''))
-    else:
-        return float(x) * 100 if float(x) <= 1 else float(x)
+# ===== 1. 读取Excel =====
+file_path = "data/results.xlsx"   # 修改为你的路径
+sheet_name = "LMT vs SAMT"
 
-# ======================
-# 3. 读取某个 sheet 的数据
-# ======================
-def load_sheet(sheet_name):
-    sheet = wb[sheet_name]
-    rows = list(sheet.iter_rows(values_only=True))
-    data = rows[1:]
+df = pd.read_excel(file_path, sheet_name=sheet_name)
 
-    times = np.array([r[0] for r in data])
+# ===== 2. 数据提取 =====
+time = df['Times(s)']
 
-    lp_sc = np.array([parse_percent(r[1]) for r in data])
-    lp_pc = np.array([parse_percent(r[2]) for r in data])
-    lp_an = np.array([r[3] for r in data])
+llm_sc = df['LLM PTG-based Testing SC']
+llm_pc = df['LLM PTG-based Testing PC']
+llm_an = df['LLM PTG-based Testing AN']
 
-    other_sc = np.array([parse_percent(r[4]) for r in data])
-    other_pc = np.array([parse_percent(r[5]) for r in data])
-    other_an = np.array([r[6] for r in data])
+rand_sc = df['SA PTG-based Testing SC']
+rand_pc = df['SA PTG-based Testing PC']
+rand_an = df['SA PTG-based Testing AN']
 
-    return times, lp_sc, lp_pc, lp_an, other_sc, other_pc, other_an
+# 创建子图
+fig, axs = plt.subplots(1, 3, figsize=(15,4))
 
-# ======================
-# 4. 配色（统一）
-# ======================
-COLOR_SC = "#FFC000"
-COLOR_PC = "#FF0000"
-COLOR_AN = "#4472C4"
+# ===================== (a) Time → Coverage =====================
+axs[0].plot(time, llm_sc, marker='o', color=PRIMARY_SC, label='LLMPTG-SC')
+axs[0].plot(time, llm_pc, marker='s', color=PRIMARY_PC, label='LLMPTG-PC')
 
-plt.rcParams.update({
-    "font.family": "serif",
-    "font.size": 11,
-    "axes.labelsize": 13,
-    "legend.fontsize": 9,
-    "figure.dpi": 200,
-    "savefig.dpi": 400,
-})
+axs[0].plot(time, rand_sc, marker='o', linestyle='--', color=COMPARE_SC, label='SAPTG-SC', alpha=0.9)
+axs[0].plot(time, rand_pc, marker='s', linestyle='--', color=COMPARE_PC, label='SAPTG-PC', alpha=0.9)
 
-# ======================
-# 5. 创建子图（关键）
-# ======================
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+axs[0].set_xlabel('Time (sec)')
+axs[0].set_ylabel('Coverage (%)')
+axs[0].set_title('(a) Coverage vs Time')
+axs[0].grid(alpha=0.3)
+axs[0].legend(fontsize=8)
 
-sheet_names = ["LMT vs SAMT1", "LMT vs SAMT2"]
-titles = ["(a) LMT vs SAMT1", "(b) LMT vs SAMT2"]
+# ===================== (b) Time → AN =====================
+axs[1].plot(time, llm_an, marker='o', color=AN_PRIMARY, label='LLMPTG')
+axs[1].plot(time, rand_an, marker='x', linestyle='--', color=AN_COMPARE, label='SAPTG')
 
-for i, (ax_left, sheet_name, title) in enumerate(zip(axes, sheet_names, titles)):
+axs[1].set_xlabel('Time (sec)')
+axs[1].set_ylabel('Action Number (AN)')
+axs[1].set_title('(b) Actions vs Time')
+axs[1].grid(alpha=0.3)
+axs[1].legend(fontsize=8)
 
-    # ---- 数据 ----
-    times, lp_sc, lp_pc, lp_an, other_sc, other_pc, other_an = load_sheet(sheet_name)
+# ===================== (c) AN → Coverage =====================
+sc = axs[2].scatter(llm_an, llm_pc, c=time, cmap=TIME_CMAP, s=60, label='LLMPTG')
+axs[2].plot(llm_an, llm_pc, color=PRIMARY_LINE)
 
-    ax_right = ax_left.twinx()
+axs[2].scatter(rand_an, rand_pc, c=time, cmap=TIME_CMAP, marker='x', s=60, label='SAPTG')
+axs[2].plot(rand_an, rand_pc, linestyle='--', color=COMPARE_LINE)
 
-    # ---- 左轴：AN ----
-    l3, = ax_left.plot(times, lp_an, color=COLOR_AN, marker='o',
-                      linestyle='-', label='LMT AN')
+axs[2].set_xlabel('Action Number (AN)')
+axs[2].set_ylabel('Path Coverage (PC %)')
+axs[2].set_title('(c) Efficiency (AN vs PC)')
+axs[2].grid(alpha=0.3)
+axs[2].legend(fontsize=8)
 
-    l6, = ax_left.plot(times, other_an, color=COLOR_AN, marker='o',
-                      linestyle='--', label='SAMT AN')
+# colorbar（时间）
+cbar = fig.colorbar(sc, ax=axs[2])
+cbar.set_label('Time (sec)')
 
-    # ---- 右轴：Coverage ----
-    l1, = ax_right.plot(times, lp_sc, color=COLOR_SC, marker='x',
-                       linestyle='-', label='LMT SC')
-
-    l2, = ax_right.plot(times, lp_pc, color=COLOR_PC, marker='^',
-                       linestyle='-', label='LMT PC')
-
-    l4, = ax_right.plot(times, other_sc, color=COLOR_SC, marker='x',
-                       linestyle='--', label='SAMT SC')
-
-    l5, = ax_right.plot(times, other_pc, color=COLOR_PC, marker='^',
-                       linestyle='--', label='SAMT PC')
-
-    # ---- 轴标签 ----
-    ax_left.set_xlabel("Time (sec.)")
-    if i == 0:
-        ax_left.set_ylabel("Action Number (AN)")
-    if i == 1:
-        ax_right.set_ylabel("Coverage (%)")
-
-    # ---- 坐标范围（统一论文风格）----
-    ax_right.set_ylim(20, 80)
-    
-    ax_right.set_ylim(
-			min(lp_sc.min(), other_sc.min(), lp_pc.min(), other_pc.min()) - 2,
-			max(lp_sc.max(), other_sc.max(), lp_pc.max(), other_pc.max()) + 2
-		)
-
-    # ---- 标题 ----
-    ax_left.set_title(title)
-
-    # ---- 网格 ----
-    ax_left.grid(True, axis='y', linestyle='-', alpha=0.3)
-
-    # ---- 图例（只放一张）----
-    if i == 0:
-        legend_lines = [l1, l2, l3, l4, l5, l6]
-        legend_labels = [line.get_label() for line in legend_lines]
-
-        ax_left.legend(
-            legend_lines,
-            legend_labels,
-            loc='upper left',
-            bbox_to_anchor=(0.02, 0.98),
-            frameon=True
-        )
-
-# ======================
-# 6. 布局 + 保存
-# ======================
+# 布局
 plt.tight_layout()
 
 plt.savefig("data/diagram_2.png", bbox_inches="tight")
