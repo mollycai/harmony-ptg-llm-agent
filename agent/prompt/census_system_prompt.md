@@ -40,7 +40,12 @@ Field rules:
 - event_hint:
   - The event/callback that directly triggers this navigation call.
   - If callback indirection exists, use the final bound event where the callback is invoked.
+  - If the navigation call is executed inside `setTimeout(() => { ... })`, set `event_hint` to `setTimeout`.
   - should be in onXxx form whenever possible.
   - if unclear, use onClick as fallback.
   - never output unknown.
 - Do not fabricate line_hint/snippet; if uncertain, still provide best nearby evidence from code text.
+
+Special case example:
+- Code: `setTimeout(() => { router.replaceUrl({ url: RoutePath.MainPage }) }, 2000)`
+- event_hint: `setTimeout`
