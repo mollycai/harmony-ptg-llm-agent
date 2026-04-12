@@ -50,7 +50,7 @@
   "pages/LoginPage": [
     {
       "component": {
-        "type": "__Common__"
+        "type": "__Common__" // 错误
       },
       "event": "onClick",
       "target": "pages/MusicIndexPage"

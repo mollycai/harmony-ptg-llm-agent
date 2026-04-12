@@ -1,6 +1,6 @@
 from __future__ import annotations
-
 import json
+import re
 from typing import Any, Callable, Dict, List, Optional
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
@@ -53,9 +53,14 @@ class RouteToolCallingResolver:
         imports: Dict[str, str],
         resolved_imports: Dict[str, str],
         llm_edges: List[Dict[str, Any]],
+        actionable_census_calls: Optional[List[Dict[str, str]]] = None,
     ) -> List[Dict[str, Any]]:
+        seeded_edges = self._build_seed_edges_from_census(actionable_census_calls or [])
+        candidate_edges = [*(llm_edges or []), *seeded_edges]
+
         unresolved: List[Dict[str, Any]] = []
-        for e in (llm_edges or []):
+        resolved_directly: List[Dict[str, Any]] = []
+        for e in candidate_edges:
             raw_target = str(e.get("target") or "").strip()
             target_expr = str(e.get("target_expr") or raw_target).strip()
             resolved = self.route_const_resolver.resolve_target_by_symbol(
@@ -64,10 +69,14 @@ class RouteToolCallingResolver:
                 imports=imports,
                 resolved_imports=resolved_imports,
             )
-            if target_looks_resolved(resolved) or not target_expr:
+            if target_looks_resolved(resolved):
+                resolved_directly.append({**e, "target": resolved})
+                continue
+            if not target_expr:
                 continue
             unresolved.append(
                 {
+                    "call_id": str(e.get("call_id") or "").strip(),
                     "component_type": str(e.get("component_type") or "unknown"),
                     "event": str(e.get("event") or "onClick"),
                     "target": raw_target,
@@ -76,8 +85,11 @@ class RouteToolCallingResolver:
             )
 
         if not unresolved:
-            print("[RouteStructureAgent] Tool-calling supplement skipped: no unresolved edges.")
-            return []
+            print(
+                "[RouteStructureAgent] Tool-calling supplement skipped: "
+                f"no unresolved edges, resolved={len(resolved_directly)}"
+            )
+            return resolved_directly
 
         print(f"[RouteStructureAgent] Tool-calling supplement start: unresolved_edges={len(unresolved)}")
         tools = self._build_tools(file_path=file_path, imports=imports, resolved_imports=resolved_imports)
@@ -128,8 +140,13 @@ class RouteToolCallingResolver:
         patched = parse_llm_json_list(final_text)
         if not patched:
             print("[RouteStructureAgent] Tool-calling supplement result is empty.")
-        print(f"[RouteStructureAgent] Tool-calling supplement done: patched_edges={len(patched)}")
-        return patched
+        merged = [*resolved_directly, *patched]
+        print(
+            "[RouteStructureAgent] Tool-calling supplement done: "
+            f"seeded={len(seeded_edges)}, resolved={len(resolved_directly)}, "
+            f"patched={len(patched)}, total={len(merged)}"
+        )
+        return merged
 
     def _build_tools(
         self,
@@ -204,6 +221,44 @@ class RouteToolCallingResolver:
             return str(out or "")
         except Exception:
             return ""
+
+    @staticmethod
+    def _extract_target_expr_from_snippet(snippet: str) -> str:
+        src = str(snippet or "").strip()
+        if not src:
+            return ""
+
+        obj_match = re.search(r"""\b(?:url|uri)\s*:\s*([^,}\n]+)""", src)
+        if obj_match:
+            return str(obj_match.group(1) or "").strip()
+
+        call_match = re.search(
+            r"""\brouter\s*\.\s*(?:push|replace)\s*\(\s*([^,\)\n]+)""",
+            src,
+            flags=re.IGNORECASE,
+        )
+        if call_match:
+            return str(call_match.group(1) or "").strip()
+        return ""
+
+    def _build_seed_edges_from_census(self, actionable_census_calls: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+        seeds: List[Dict[str, Any]] = []
+        for call in actionable_census_calls:
+            target_expr = self._extract_target_expr_from_snippet(str(call.get("snippet") or ""))
+            if not target_expr:
+                continue
+            seeds.append(
+                {
+                    "call_id": str(call.get("call_id") or "").strip(),
+                    "component_type": str(call.get("component_hint") or "__Common__").strip() or "__Common__",
+                    "event": str(call.get("event_hint") or "onClick").strip() or "onClick",
+                    "target": self.route_const_resolver._strip_wrappers(target_expr),
+                    "target_expr": target_expr,
+                }
+            )
+        if seeds:
+            print(f"[RouteStructureAgent] Seed edges built from census: count={len(seeds)}")
+        return seeds
 
     def _run_tool_call(
         self,

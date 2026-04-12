@@ -92,7 +92,7 @@
   "pages/MovieUserPage": [
     {
       "component": {
-        "type": "Button"
+        "type": "Button" // 错误：应该是 "Text"
       },
       "event": "onClick",
       "target": "pages/MovieLoginPage"
@@ -120,7 +120,7 @@
   "pages/UserPage": [
     {
       "component": {
-        "type": "Button"
+        "type": "Button" // 错误：应该是 "Text"
       },
       "event": "onClick",
       "target": "pages/LoginPage"

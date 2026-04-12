@@ -2,45 +2,23 @@
   "pages/CommodityDetailPage": [
     {
       "component": {
-        "type": "CapsuleGroupButton" // 错误
+        "type": "CapsuleGroupButton"
       },
       "event": "onClick",
       "target": "pages/ConfirmOrderPage"
     }
   ],
-  "pages/ConfirmOrderPage": [
-    {
-      "component": {
-        "type": "Button"
-      },
-      "event": "onClick",
-      "target": "pages/PayOrderPage"
-    }
-  ],
+  "pages/ConfirmOrderPage": [],
   "pages/MainPage": [
     {
       "component": {
-        "type": "Home" // 错误
+        "type": "Home"
       },
-      "event": "onClickItem", // 错误
+      "event": "onClickItem",
       "target": "pages/CommodityDetailPage"
     },
     {
       "component": {
-        "type": "IconButton" // 错误
-      },
-      "event": "onOrderButtonClick", // 错误
-      "target": "pages/OrderDetailListPage"
-    },
-    {
-      "component": {
-        "type": "Row"
-      },
-      "event": "onClick",
-      "target": "pages/OrderDetailListPage"
-    },
-    {
-      "component": {
         "type": "Button"
       },
       "event": "onClick",
@@ -48,9 +26,16 @@
     },
     {
       "component": {
-        "type": "CommodityList" // 错误
+        "type": "CommodityList"
       },
       "event": "onClickItem",
+      "target": "pages/CommodityDetailPage"
+    },
+    {
+      "component": {
+        "type": "CommodityList"
+      },
+      "event": "onClick",
       "target": "pages/CommodityDetailPage"
     }
   ],
@@ -64,7 +49,7 @@
     },
     {
       "component": {
-        "type": "CommodityList" // 错误
+        "type": "CommodityList"
       },
       "event": "onClickItem",
       "target": "pages/CommodityDetailPage"
@@ -76,7 +61,7 @@
       "component": {
         "type": "__Common__"
       },
-      "event": "aboutToAppear",
+      "event": "setTimeout",
       "target": "pages/MainPage"
     }
   ]

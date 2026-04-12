@@ -121,7 +121,7 @@ class RouteValidationAgent:
                 raw_component = ((e.get("component") or {}).get("type")) or e.get("component_type")
                 raw_event = e.get("event")
                 component_type = _normalize_component_type(raw_component)
-                event = _normalize_event(raw_event)
+                # event = _normalize_event(raw_event)
 
                 target_raw = str(e.get("target") or "")
                 target = strip_ets(_strip_quotes(normalize_path(target_raw)))
@@ -133,12 +133,12 @@ class RouteValidationAgent:
                 # 记录字段修正次数，便于回归观察。
                 if component_type != str(raw_component or "").strip():
                     report["edges_fixed_component"] += 1
-                if event != str(raw_event or "").strip():
-                    report["edges_fixed_event"] += 1
+                # if event != str(raw_event or "").strip():
+                #     report["edges_fixed_event"] += 1
 
                 ne: Dict[str, Any] = {
                     "component": {"type": component_type},
-                    "event": event,
+                    "event": raw_event,
                     "target": target,
                 }
 

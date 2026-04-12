@@ -1,4 +1,4 @@
-const PTGJson = `{
+{
   "pages/ForgetPasswordPage": [
     {
       "component": {
@@ -61,6 +61,13 @@ const PTGJson = `{
       },
       "event": "onClick",
       "target": "pages/ForgetPasswordPage"
+    },
+    {
+      "component": {
+        "type": "Button" // 错误
+      },
+      "event": "onClick",
+      "target": "pages/MusicIndexPage"
     }
   ],
   "pages/MovieDetailPage": [
@@ -83,6 +90,13 @@ const PTGJson = `{
     }
   ],
   "pages/MovieUserPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/MovieLoginPage"
+    },
     {
       "component": {
         "type": "Button"
@@ -120,18 +134,24 @@ const PTGJson = `{
   "pages/UserPage": [
     {
       "component": {
-        "type": "Button"
+        "type": "Text"
       },
       "event": "onClick",
-      "target": "pages/LoginPage"
+      "target": "pages/UpdatePasswordPage"
     },
     {
       "component": {
         "type": "Text"
       },
       "event": "onClick",
-      "target": "pages/UpdatePasswordPage"
+      "target": "pages/LoginPage"
+    },
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/LoginPage"
     }
   ]
-}`;
-export default PTGJson;
+}

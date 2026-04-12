@@ -1,0 +1,21 @@
+{
+  "pages/DailyRecommendPage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/IndexPage"
+    }
+  ],
+  "pages/HomePage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/IndexPage"
+    }
+  ],
+  "pages/IndexPage": []
+}

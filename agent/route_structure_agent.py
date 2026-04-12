@@ -12,7 +12,6 @@ import json
 import re
 import sys
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, TypedDict
@@ -65,25 +64,6 @@ def _ensure_ets(p: str) -> str:
     return t if (not t or t.endswith(".ets")) else f"{t}.ets"
 
 
-def _safe_dir(name: str, fallback: str = "default") -> str:
-    """
-    将任意字符串转换为可安全创建目录的名称。
-
-    Args:
-        name: 目录名候选字符串。
-        fallback: name 无效时的回退目录名。
-
-    Returns:
-        过滤非法字符后的安全目录名。
-    """
-    s = (name or "").strip() or fallback
-    s = re.sub(r'[<>:"/\\|?*\x00-\x1F]', "_", s)
-    s = re.sub(r"[. ]+$", "", s).strip() or fallback
-    if re.fullmatch(r"(con|prn|aux|nul|com[1-9]|lpt[1-9])", s, flags=re.IGNORECASE):
-        s = "_" + s
-    return s
-
-
 @dataclass
 class RouteStructureAgentConfig:
     """RouteStructureAgent 的运行配置。"""
@@ -107,6 +87,7 @@ class RouteStructureAgentConfig:
     llm_skip_dirs: Optional[List[str]] = None
     max_llm_calls: int = 3000
     token_budget_total: int = 0
+    llm_call_pause_seconds: float = 2.0
 
 
 class RouteState(str, Enum):
@@ -291,6 +272,9 @@ class RouteStructureAgent:
             raise RuntimeError("LLM budget exhausted")
         msg = await self.llm.ainvoke(messages)
         self._record_token_usage(stage=stage, msg=msg)
+        pause_sec = max(0.0, float(self.config.llm_call_pause_seconds))
+        if pause_sec > 0:
+            await asyncio.sleep(pause_sec)
         return msg
 
     def _normalize_import_alias_map(self, raw_map: Optional[Dict[str, str]]) -> Dict[str, str]:
@@ -471,7 +455,7 @@ class RouteStructureAgent:
                     messages=[("system", CENSUS_SYSTEM_PROMPT), ("user", user_prompt)],
                 )
                 rows = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
-                print('rows', rows)
+                print('[RouteStructureAgent] Census rows', rows)
             except Exception as ex:
                 print(f"[RouteStructureAgent] Census failed: {ex}")
                 rows = []
@@ -583,6 +567,7 @@ class RouteStructureAgent:
                 state=RouteState.EDGE_CONSTRUCT,
                 messages=[("system", COVERAGE_RETRY_SYSTEM_PROMPT), ("user", user_prompt)],
             )
+            print('[RouteStructureAgent] Edge construct raw', str(getattr(msg, "content", "") or ""))
             constructed_edges = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
         except Exception as ex:
             print(f"[RouteStructureAgent] Edge construct failed: {ex}")
@@ -618,6 +603,7 @@ class RouteStructureAgent:
             imports=imports,
             resolved_imports=resolved_map,
             llm_edges=prefiltered_edges,
+            actionable_census_calls=actionable_census_calls,
         )
         out: List[Dict[str, Any]] = []
         merged_seen = set()
@@ -789,68 +775,24 @@ class RouteStructureAgent:
         self.route_const_resolver.build()
         return main_pages, main_page_ids
 
-    def _sync_test_ptg_ets(self, ptg_obj: Dict[str, List[Dict[str, Any]]]) -> None:
-        """同步更新 test/PTG.ets 中的 PTGJson/PTGJSON 常量。"""
-        repo_root = Path(__file__).resolve().parent.parent
-        ptg_ets_path = repo_root / "test" / "PTG.ets"
-        if not ptg_ets_path.exists():
-            print(f"[RouteStructureAgent] test/PTG.ets not found, skip sync: {str(ptg_ets_path)}")
-            return
-
-        ptg_json_text = json.dumps(ptg_obj, ensure_ascii=False, indent=2)
-        try:
-            text = ptg_ets_path.read_text(encoding="utf-8")
-        except Exception as ex:
-            print(f"[RouteStructureAgent] Failed to read test/PTG.ets: {ex}")
-            return
-
-        pattern = re.compile(r"(const\s+(PTGJson|PTGJSON)\s*=\s*)`[\s\S]*?`;", flags=re.MULTILINE)
-        m = pattern.search(text)
-        if m:
-            prefix = m.group(1)
-            new_block = f"{prefix}`{ptg_json_text}`;"
-            new_text = pattern.sub(new_block, text, count=1)
-        else:
-            # 兜底：若未匹配到既有常量，直接重写为标准模板。
-            new_text = f"const PTGJson = `{ptg_json_text}`;\nexport default PTGJson;\n"
-
-        try:
-            ptg_ets_path.write_text(new_text, encoding="utf-8")
-            print(f"[RouteStructureAgent] PTG synced to test/PTG.ets: {str(ptg_ets_path)}")
-        except Exception as ex:
-            print(f"[RouteStructureAgent] Failed to write test/PTG.ets: {ex}")
-
-    def _finalize_outputs(self) -> Dict[str, List[Dict[str, Any]]]:
-        """输出汇总日志并保存 PTG。"""
+    def get_finalize_snapshot(self) -> Dict[str, Any]:
+        """提供 workflow 最终落盘所需的汇总信息。"""
         unresolved_summary = self.import_resolver.get_unresolved_imports_summary(top_n=20)
-        if unresolved_summary:
-            print(
-                "[RouteStructureAgent] Unresolved imports summary (top 20): "
-                + json.dumps(unresolved_summary, ensure_ascii=False)
-            )
-        else:
-            print("[RouteStructureAgent] Unresolved imports summary: []")
-
-        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_dir = Path(self.config.output_dir) / _safe_dir(self.config.project_name)
-        ptg_path = out_dir / f"ptg_route_structure_{stamp}.json"
         self._set_state(RouteState.FINALIZE)
-        self.memory.save_json(str(ptg_path))
-        print(f"[RouteStructureAgent] PTG saved: {str(ptg_path)}")
-        ptg_obj = self.memory.to_json_obj()
-        self._sync_test_ptg_ets(ptg_obj)
-        print(
-            "[RouteStructureAgent] Token usage summary: "
-            f"calls={self._token_calls}, prompt={self._token_prompt}, "
-            f"completion={self._token_completion}, total={self._token_total}"
-        )
-        print(
-            "[RouteStructureAgent] State summary: "
-            f"coverage_calls={self.state_ctx.coverage_calls}, "
-            f"constructed_edges={self.state_ctx.constructed_edges}, "
-            f"invalid_target_dropped={self.state_ctx.invalid_target_dropped}"
-        )
-        return ptg_obj
+        return {
+            "unresolved_imports_summary": unresolved_summary,
+            "token_usage": {
+                "calls": self._token_calls,
+                "prompt": self._token_prompt,
+                "completion": self._token_completion,
+                "total": self._token_total,
+            },
+            "state_summary": {
+                "coverage_calls": self.state_ctx.coverage_calls,
+                "constructed_edges": self.state_ctx.constructed_edges,
+                "invalid_target_dropped": self.state_ctx.invalid_target_dropped,
+            },
+        }
 
     async def _run_legacy(self) -> Dict[str, List[Dict[str, Any]]]:
         """原始顺序编排执行器（LangGraph 不可用时回退）。"""
@@ -872,7 +814,7 @@ class RouteStructureAgent:
                 depth=0,
                 chain=[mp_id],
             )
-        return self._finalize_outputs()
+        return self.memory.to_json_obj()
 
     async def _graph_node_init(self, _: RouteGraphState) -> RouteGraphState:
         main_pages, main_page_ids = self._prepare_main_pages()
@@ -933,7 +875,7 @@ class RouteStructureAgent:
         return {"main_idx": idx + 1}
 
     async def _graph_node_finalize(self, _: RouteGraphState) -> RouteGraphState:
-        return {"ptg": self._finalize_outputs()}
+        return {"ptg": self.memory.to_json_obj()}
 
     def _graph_route_after_discover(self, state: RouteGraphState) -> str:
         if bool(state.get("done", False)):

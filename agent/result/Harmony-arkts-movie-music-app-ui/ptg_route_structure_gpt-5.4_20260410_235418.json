@@ -1,4 +1,4 @@
-const PTGJson = `{
+{
   "pages/ForgetPasswordPage": [
     {
       "component": {
@@ -61,7 +61,8 @@ const PTGJson = `{
       },
       "event": "onClick",
       "target": "pages/ForgetPasswordPage"
-    }
+    },
+		// 缺一条边
   ],
   "pages/MovieDetailPage": [
     {
@@ -85,7 +86,7 @@ const PTGJson = `{
   "pages/MovieUserPage": [
     {
       "component": {
-        "type": "Button"
+        "type": "Text"
       },
       "event": "onClick",
       "target": "pages/MovieLoginPage"
@@ -95,13 +96,6 @@ const PTGJson = `{
     {
       "component": {
         "type": "Text"
-      },
-      "event": "onClick",
-      "target": "pages/IndexPage"
-    },
-    {
-      "component": {
-        "type": "__Common__"
       },
       "event": "onClick",
       "target": "pages/IndexPage"
@@ -120,7 +114,7 @@ const PTGJson = `{
   "pages/UserPage": [
     {
       "component": {
-        "type": "Button"
+        "type": "Text"
       },
       "event": "onClick",
       "target": "pages/LoginPage"
@@ -133,5 +127,4 @@ const PTGJson = `{
       "target": "pages/UpdatePasswordPage"
     }
   ]
-}`;
-export default PTGJson;
+}
