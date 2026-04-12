@@ -2,12 +2,14 @@ from __future__ import annotations
 
 # 路由结构抽取主流程（RouteStructureAgent）：
 # 1) 从 main_pages 出发递归读取可达的 .ets 文件；
-# 2) 对通过“LLM 准入门”的文件执行两阶段抽取：
+# 2) 对通过“LLM 准入门”的文件执行多阶段抽取：
 #    - census：先统计调用点
+#    - trigger_refine：按需做一次跨文件摘要补解析
 #    - construct：基于 census 调用点直接构建边
 # 3) 做 target 合法性过滤后写入 PTGMemory。
 
 import asyncio
+import hashlib
 import json
 import re
 import sys
@@ -23,8 +25,10 @@ from agent.memory import PTGMemory
 from agent.prompt.route_structure_prompt import (
     CENSUS_SYSTEM_PROMPT,
     COVERAGE_RETRY_SYSTEM_PROMPT,
+    TRIGGER_REFINE_SYSTEM_PROMPT,
     build_coverage_retry_user_prompt,
     build_census_user_prompt,
+    build_trigger_refine_user_prompt,
 )
 from agent.tools.import_resolver import ImportResolver
 from agent.tools.project_reader import ProjectReader
@@ -98,6 +102,7 @@ class RouteState(str, Enum):
     EXPAND_IMPORTS = "EXPAND_IMPORTS"
     ADMISSION_CHECK = "ADMISSION_CHECK"
     ROUTER_CENSUS = "ROUTER_CENSUS"
+    TRIGGER_REFINE = "TRIGGER_REFINE"
     EDGE_CONSTRUCT = "EDGE_CONSTRUCT"
     NORMALIZE_AND_FILTER = "NORMALIZE_AND_FILTER"
     WRITE_PTG = "WRITE_PTG"
@@ -408,6 +413,213 @@ class RouteStructureAgent:
         )
         return chunks
 
+    @staticmethod
+    def _normalize_bool_flag(v: Any) -> bool:
+        if isinstance(v, bool):
+            return v
+        t = str(v or "").strip().lower()
+        return t in {"1", "true", "yes", "y"}
+
+    @staticmethod
+    def _is_valid_component_hint(v: str) -> bool:
+        t = str(v or "").strip()
+        if not t or t == "__Common__":
+            return False
+        low = t.lower()
+        bad_prefixes = ("router.", "this.", "console.")
+        bad_values = {"onclick", "ontap", "onitemclick", "itembuilder", "builditem", "handleclick"}
+        if low in bad_values:
+            return False
+        if any(low.startswith(x) for x in bad_prefixes):
+            return False
+        return True
+
+    @staticmethod
+    def _is_valid_event_hint(v: str) -> bool:
+        t = str(v or "").strip()
+        return bool(t) and t.lower() != "unknown"
+
+    def _resolve_component_ref_file(
+        self,
+        *,
+        component_ref_symbol: str,
+        imports: Dict[str, str],
+        resolved_map: Dict[str, str],
+        current_file_path: str,
+    ) -> str:
+        sym = str(component_ref_symbol or "").strip()
+        if not sym:
+            return ""
+        direct = str(resolved_map.get(sym) or "").strip()
+        if direct and self._is_readable_ets_file(direct):
+            return direct
+        mod = str(imports.get(sym) or "").strip()
+        if not mod:
+            return ""
+        resolved = self.import_resolver.resolve_import_path(
+            import_path=mod,
+            current_file_path=current_file_path,
+            symbol_alias=sym,
+        )
+        if resolved and self._is_readable_ets_file(resolved):
+            return resolved
+        return ""
+
+    @staticmethod
+    def _normalize_census_snippet(snippet: str) -> str:
+        src = str(snippet or "").strip()
+        if not src:
+            return ""
+        src = re.sub(r"\s+", " ", src)
+        return src.strip()
+
+    @staticmethod
+    def _extract_target_expr_from_census_snippet(snippet: str) -> str:
+        src = str(snippet or "").strip()
+        if not src:
+            return ""
+        obj_match = re.search(r"""\b(?:url|uri)\s*:\s*([^,}\n]+)""", src)
+        if obj_match:
+            return str(obj_match.group(1) or "").strip()
+        call_match = re.search(
+            r"""\brouter\s*\.\s*(?:pushUrl|replaceUrl|push|replace)\s*\(\s*([^,\)\n]+)""",
+            src,
+            flags=re.IGNORECASE,
+        )
+        if call_match:
+            return str(call_match.group(1) or "").strip()
+        return ""
+
+    def _score_census_call(self, call: Dict[str, str]) -> tuple[int, int, int, int]:
+        component_hint = str(call.get("component_hint") or "").strip()
+        event_hint = str(call.get("event_hint") or "").strip()
+        needs_cross = 1 if self._normalize_bool_flag(call.get("needs_cross_file_resolution")) else 0
+        has_component = 1 if self._is_valid_component_hint(component_hint) else 0
+        has_event = 1 if self._is_valid_event_hint(event_hint) else 0
+        snippet_len = len(self._normalize_census_snippet(str(call.get("snippet") or "")))
+        return (has_component, has_event, needs_cross, snippet_len)
+
+    def _normalize_and_dedupe_census_calls(
+        self,
+        *,
+        file_key: str,
+        calls: List[Dict[str, str]],
+    ) -> List[Dict[str, str]]:
+        merged: Dict[tuple[str, str, str], Dict[str, str]] = {}
+        order: List[tuple[str, str, str]] = []
+        for idx, call in enumerate(calls, start=1):
+            method = str(call.get("method") or "").strip() or "other_router"
+            norm_snippet = self._normalize_census_snippet(str(call.get("snippet") or ""))
+            target_expr = self._extract_target_expr_from_census_snippet(norm_snippet)
+            dedupe_key = (method, target_expr, norm_snippet)
+            candidate = dict(call)
+            candidate["snippet"] = norm_snippet or str(call.get("snippet") or "").strip()
+            prev = merged.get(dedupe_key)
+            if prev is None or self._score_census_call(candidate) > self._score_census_call(prev):
+                merged[dedupe_key] = candidate
+            if dedupe_key not in order:
+                order.append(dedupe_key)
+
+        out: List[Dict[str, str]] = []
+        for i, key in enumerate(order, start=1):
+            row = dict(merged[key])
+            digest = hashlib.md5(f"{file_key}|{key[0]}|{key[1]}|{key[2]}".encode("utf-8")).hexdigest()[:10]
+            row["call_id"] = f"rc_{i}_{digest}"
+            out.append(row)
+        if len(out) != len(calls):
+            print(
+                "[RouteStructureAgent] Census dedupe summary: "
+                f"raw={len(calls)}, deduped={len(out)}, file={file_key}"
+            )
+        return out
+
+    async def _refine_cross_file_census_calls(
+        self,
+        *,
+        file_path: Path,
+        code: str,
+        imports: Dict[str, str],
+        resolved_map: Dict[str, str],
+        chain: List[str],
+        census_calls: List[Dict[str, str]],
+    ) -> List[Dict[str, str]]:
+        file_key = normalize_path(str(file_path))
+        traced: List[Dict[str, str]] = []
+        for call in census_calls:
+            merged = dict(call)
+            component_ref_symbol = str(call.get("component_ref_symbol") or "").strip()
+            needs_cross = self._normalize_bool_flag(call.get("needs_cross_file_resolution"))
+            if not needs_cross or not component_ref_symbol:
+                traced.append(merged)
+                continue
+            component_file = self._resolve_component_ref_file(
+                component_ref_symbol=component_ref_symbol,
+                imports=imports,
+                resolved_map=resolved_map,
+                current_file_path=file_key,
+            )
+            if not component_file:
+                traced.append(merged)
+                continue
+            try:
+                component_code = self.reader.read_source_file(component_file)
+            except Exception:
+                traced.append(merged)
+                continue
+            if not component_code.strip():
+                traced.append(merged)
+                continue
+            user_prompt = build_trigger_refine_user_prompt(
+                file_path=file_key,
+                call=merged,
+                component_file_path=normalize_path(component_file),
+                component_code=component_code,
+                dependency_chain=chain,
+            )
+            try:
+                self._set_state(RouteState.TRIGGER_REFINE, file_path=file_key)
+                msg = await self._ainvoke_with_state(
+                    stage="trigger_refine",
+                    state=RouteState.TRIGGER_REFINE,
+                    messages=[("system", TRIGGER_REFINE_SYSTEM_PROMPT), ("user", user_prompt)],
+                )
+                rows = parse_llm_json_list(str(getattr(msg, "content", "") or ""))
+            except Exception as ex:
+                print(f"[RouteStructureAgent] Trigger refine failed: {ex}")
+                rows = []
+            row = rows[0] if rows else {}
+            refined_component = str(row.get("component_hint") or "").strip()
+            refined_event = str(row.get("event_hint") or "").strip()
+            resolved = self._normalize_bool_flag(row.get("resolved"))
+            if self._is_valid_component_hint(refined_component):
+                merged["component_hint"] = refined_component
+            if self._is_valid_event_hint(refined_event):
+                merged["event_hint"] = refined_event
+            if resolved:
+                merged["needs_cross_file_resolution"] = False
+                merged["resolved"] = True
+                merged["resolution_kind"] = "cross_file_refine"
+                print(
+                    "[RouteStructureAgent] Trigger refine resolved: "
+                    f"call_id={str(merged.get('call_id') or '').strip()}, "
+                    f"symbol={component_ref_symbol}, "
+                    f"component={merged.get('component_hint')}, event={merged.get('event_hint')}"
+                )
+            else:
+                merged["resolved"] = False
+                merged["resolution_kind"] = ""
+            traced.append(merged)
+        for call in traced:
+            if "resolved" not in call:
+                call["resolved"] = False
+            if "resolution_kind" not in call:
+                call["resolution_kind"] = ""
+        print(
+            "[RouteStructureAgent] Trigger refine summary: "
+            f"calls={len(traced)}, resolved={sum(1 for x in traced if self._normalize_bool_flag(x.get('resolved')))}, file={file_key}"
+        )
+        return traced
+
     async def _extract_router_census(
         self,
         *,
@@ -463,31 +675,29 @@ class RouteStructureAgent:
                 method = str(r.get("method") or "").strip() or "other_router"
                 line_hint = str(r.get("line_hint") or "").strip() or "unknown"
                 snippet = str(r.get("snippet") or "").strip()
-                call_id = str(r.get("call_id") or "").strip() or f"c{idx}_{i}"
                 component_hint = str(r.get("component_hint") or "").strip() or "__Common__"
                 event_hint = str(r.get("event_hint") or "").strip() or "onClick"
+                needs_cross_file_resolution = self._normalize_bool_flag(r.get("needs_cross_file_resolution"))
+                component_ref_symbol = str(r.get("component_ref_symbol") or "").strip()
+                callback_ref = str(r.get("callback_ref") or "").strip()
+                cross_file_reason = str(r.get("cross_file_reason") or "").strip()
                 if not snippet:
                     continue
                 calls.append(
                     {
-                        "call_id": call_id,
+                        "call_id": f"chunk_{idx}_row_{i}",
                         "method": method,
                         "line_hint": line_hint,
                         "snippet": snippet,
                         "component_hint": component_hint,
                         "event_hint": event_hint,
+                        "needs_cross_file_resolution": needs_cross_file_resolution,
+                        "component_ref_symbol": component_ref_symbol,
+                        "callback_ref": callback_ref,
+                        "cross_file_reason": cross_file_reason,
                     }
                 )
-
-        seen = set()
-        out: List[Dict[str, str]] = []
-        for c in calls:
-            k = (c["method"], c["line_hint"], c["snippet"])
-            if k in seen:
-                continue
-            seen.add(k)
-            out.append(c)
-        return out
+        return self._normalize_and_dedupe_census_calls(file_key=file_key, calls=calls)
 
     @staticmethod
     def _is_actionable_census_call(call: Dict[str, str]) -> bool:
@@ -695,6 +905,14 @@ class RouteStructureAgent:
                 code=code,
                 chain=chain,
                 resolved_files=resolved_files,
+            )
+            census_calls = await self._refine_cross_file_census_calls(
+                file_path=canonical_file,
+                code=code,
+                imports=imports,
+                resolved_map=resolved_map,
+                chain=chain,
+                census_calls=census_calls,
             )
             actionable_census_calls = [c for c in census_calls if self._is_actionable_census_call(c)]
             self.state_ctx.coverage_calls += len(actionable_census_calls)
