@@ -1,3 +1,5 @@
+[中文](README.md) | [English](README_EN.md)
+
 # 基于大语言模型工作流生成PTG的HarmonyOS应用自动化测试
 
 ## 数据集（被测应用）
@@ -99,16 +101,18 @@ type PTG = Record<PagePath, Array<{
 #### 1) 工作流总览（状态机）
 每个 `main_page` 独立执行以下状态流转：
 ```text
-INIT
--> DISCOVER_MAIN_PAGE
--> EXPAND_IMPORTS
+INITIALIZATION
+-> MAIN_PAGE_DISCOVERY
+-> IMPORTS_EXTRACTION
 -> ADMISSION_CHECK
 -> ROUTER_CENSUS
--> EDGE_CONSTRUCT
--> NORMALIZE_AND_FILTER
--> WRITE_PTG
+-> ROUTE_REFINEMENT
+-> EDGE_CONSTRUCTION
+-> NORMALIZATION_AND_FILTER
+-> WRITING_IN_PTG
 -> NEXT_FILE / NEXT_MAIN_PAGE
 -> FINALIZE
+-> VALIDATE_REWRITE
 ```
 
 说明：
@@ -119,7 +123,8 @@ INIT
 #### 2) 局部自主决策（LLM + Tool Calling）
 LLM 不是全流程自由调度，只在受限状态内决策：
 - `ROUTER_CENSUS`：识别路由调用点并生成 `call_id`（覆盖率基线）。
-- `EDGE_CONSTRUCT`：基于 `census_calls` 逐调用点构建边（主抽取）。
+- `ROUTE_REFINEMENT`：针对需要跨文件补证据的调用点，补全 `component/event` 线索。
+- `EDGE_CONSTRUCTION`：基于 `census_calls` 逐调用点构建边（主抽取）。
 - `tool-calling`：补解析 `import/target_expr`，例如：
   - `resolve_import_path`
   - `resolve_target_expr`
@@ -137,9 +142,10 @@ LLM 不是全流程自由调度，只在受限状态内决策：
 - 文件准入门（仅作用于“是否进入 LLM”，不影响 import 递归）：
   - 跳过 `llm_skip_dirs`（默认：`http/route`）；
   - 仅当运行时代码命中可执行路由动作才进入 LLM（`pushUrl/replaceUrl/push/replace/back`）。
-- 两阶段协作：
+- 三阶段协作：
   - `_extract_router_census`：先统计调用点，形成 coverage 基线；
-  - `_recover_edges_by_census_gap`：基于 `census_calls` 逐调用点构建边（主抽取，对应状态名 `EDGE_CONSTRUCT`）。
+  - `_refine_cross_file_census_calls`：对需要跨文件解析的调用点做补证据和触发信息细化（对应状态名 `ROUTE_REFINEMENT`）；
+  - `_construct_edges_from_census`：基于 `census_calls` 逐调用点构建边（主抽取，对应状态名 `EDGE_CONSTRUCTION`）。
 - 入库前做 target 合法性过滤，写入 memory（自动去重）。
 
 #### 4) RouteValidationAgent（规则校验与重写，精度收口）
@@ -174,7 +180,7 @@ LLM 不是全流程自由调度，只在受限状态内决策：
 #### 5) 可观测性与运行结果
 token 统计（当前实现）：
 - 每次 LLM 交互后，从 LangChain 消息对象提取并打印 token 用量：
-  - `census` / `construct` / `tool_calling`
+  - `census` / `trigger_refine` / `construct` / `tool_calling`
 - PTG 保存后打印全流程 token 汇总：
   - `calls` / `prompt` / `completion` / `total`
 
@@ -184,7 +190,7 @@ token 统计（当前实现）：
 ```
 
 控制台可观察到：
-- RouteStructure 阶段的递归读取、两阶段抽取、tool-calling 与 token 日志；
+- RouteStructure 阶段的递归读取、三阶段抽取、tool-calling 与 token 日志；
 - RouteValidation 阶段的 `report`（修正/丢弃/去重明细）；
 - 最终 PTG JSON 输出。
 
@@ -193,35 +199,39 @@ token 统计（当前实现）：
 
 | 状态 | 主要职责 | 当前实现函数（RouteStructureAgent / RouteValidationAgent） |
 | --- | --- | --- |
-| `INIT` | 初始化模型、工具、memory、配置 | `RouteStructureAgent.__init__` |
-| `DISCOVER_MAIN_PAGE` | 读取 main pages，逐个入口页面启动流程 | `RouteStructureAgent.run` |
-| `EXPAND_IMPORTS` | 读取文件、提取 import、解析依赖文件 | `RouteStructureAgent._analyze_file`（内部调用 `import_resolver.extract_imports` / `resolve_imports_to_files` / `find_nested_component_files`） |
+| `INITIALIZATION` | 初始化模型、工具、memory、配置 | `RouteStructureAgent.__init__` |
+| `MAIN_PAGE_DISCOVERY` | 读取 main pages，逐个入口页面启动流程 | `RouteStructureAgent.run` |
+| `IMPORTS_EXTRACTION` | 读取文件、提取 import、解析依赖文件 | `RouteStructureAgent._analyze_file`（内部调用 `import_resolver.extract_imports` / `resolve_imports_to_files` / `find_nested_component_files`） |
 | `ADMISSION_CHECK` | 判断文件是否进入 LLM 分析 | `RouteStructureAgent._is_llm_admissible_file`、`_to_runtime_code_for_admission`、`_has_router_hints` |
 | `ROUTER_CENSUS` | 统计 router 调用点（coverage 基线） | `RouteStructureAgent._extract_router_census` |
-| `EDGE_CONSTRUCT` | 基于 census 调用点逐点构建路由边 | `RouteStructureAgent._recover_edges_by_census_gap`（LLM 构边 + 过滤 + merge） |
-| `NORMALIZE_AND_FILTER` | 入库前 target 合法性过滤、边字段规整 | `RouteStructureAgent._analyze_file`（入库前过滤） |
-| `WRITE_PTG` | 写入 PTG memory 并去重 | `PTGMemory.add_edge`（在 `_analyze_file` 中调用） |
+| `ROUTE_REFINEMENT` | 对需跨文件解析的调用点补全 `component/event` 线索，减少后续构边歧义 | `RouteStructureAgent._refine_cross_file_census_calls` |
+| `EDGE_CONSTRUCTION` | 基于 census 调用点逐点构建路由边 | `RouteStructureAgent._construct_edges_from_census`（LLM 构边 + 过滤 + merge） |
+| `NORMALIZATION_AND_FILTER` | 入库前 target 合法性过滤、边字段规整 | `RouteStructureAgent._analyze_file`（入库前过滤） |
+| `WRITING_IN_PTG` | 写入 PTG memory 并去重 | `PTGMemory.add_edge`（在 `_analyze_file` 中调用） |
 | `FINALIZE` | 保存 PTG、输出统计日志 | `RouteStructureAgent.run`（`memory.save_json` + token summary） |
 | `VALIDATE_REWRITE` | 最终规则校验与重写 | `RouteValidationAgent.validate_and_rewrite` |
 
 补充说明：
 - tool-calling 补解析能力由 `agent/tools/route_tool_calling.py` 中 `RouteToolCallingResolver.supplement_edges` 提供。
-- 该能力在 `EDGE_CONSTRUCT` 状态中被调用，用于解析 `import/target_expr`。
+- 该能力在 `EDGE_CONSTRUCTION` 状态中被调用，用于解析 `import/target_expr`。
 
 #### 7) 状态图（Mermaid）
 ```mermaid
 flowchart TD
-    A[INIT] --> B[DISCOVER_MAIN_PAGE]
-    B --> C[EXPAND_IMPORTS]
+    A[INITIALIZATION] --> B[MAIN_PAGE_DISCOVERY]
+    B --> C[IMPORTS_EXTRACTION]
     C --> D{ADMISSION_CHECK}
 
     D -- no --> C2[NEXT_FILE]
     C2 --> C
 
     D -- yes --> E[ROUTER_CENSUS]
-    E --> H[EDGE_CONSTRUCT]
-    H --> I[NORMALIZE_AND_FILTER]
-    I --> J[WRITE_PTG]
+    E --> F{TRIGGER_REFINE?}
+    F -- yes --> G[ROUTE_REFINEMENT]
+    G --> H[EDGE_CONSTRUCTION]
+    F -- no --> H[EDGE_CONSTRUCTION]
+    H --> I[NORMALIZATION_AND_FILTER]
+    I --> J[WRITING_IN_PTG]
     J --> C2
 
     C2 --> K{NEXT_MAIN_PAGE?}
@@ -266,5 +276,5 @@ flowchart TD
 2. 将/test文件夹下的所有文件，复制到对应项目里，例如：/Users/edwincai/MUST/projects/HarmoneyOpenEye/entry/src/ohosTest/ets/test，然后可以设置时间，开始执行测试，测试结果可以筛选查看testTag中的内容。
 
 ## 实验数据
-1. LLM-constructed PTG 结果数据详见 /result, static analysis 复现数据详见/static_analysis, 自动化测试实验数据和图表绘制详见 /data
+1. static analysis baseline 复现数据详见/static_analysis, PTG构建、自动化测试实验数据和图表绘制详见 /data
 2. 实验的日志样例详见 /log
