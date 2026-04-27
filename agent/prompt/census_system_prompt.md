@@ -27,7 +27,7 @@ Output schema (JSON array):
 ]
 
 Field rules:
-- method: one of pushUrl, replaceUrl, push, replace, back, Navigation, NavPathStack, other_router.
+- method: one of pushUrl, replaceUrl, push, replace, Navigation, NavPathStack.
 - line_hint: a short hint like "around line 128".
 - snippet:
   - short original code snippet containing the call;
@@ -69,7 +69,7 @@ Rules:
 - When callback indirection exists and the current chunk still shows the final UI event owner, do not stop at the callback or method name.
 - When cross-file refinement is needed, preserve the next component/callback clue if it is visible in the current chunk.
 
-Output:
+Output Example:
 [
   {
     "call_id": "c1",

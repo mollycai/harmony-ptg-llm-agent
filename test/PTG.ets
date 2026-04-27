@@ -1,82 +1,144 @@
 const PTGJson = `{
-  "pages/Index": [
+  "pages/ForgetPasswordPage": [
     {
       "component": {
-        "type": "__Common__"
-      },
-      "event": "setTimeout",
-      "target": "pages/guide"
-    },
-    {
-      "component": {
-        "type": "__Common__"
-      },
-      "event": "onChanged",
-      "target": "pages/setting"
-    },
-    {
-      "component": {
-        "type": "Stack"
+        "type": "Text"
       },
       "event": "onClick",
-      "target": "pages/help"
-    },
-    {
-      "component": {
-        "type": "Stack"
-      },
-      "event": "onClick",
-      "target": "pages/illustrate"
-    },
-    {
-      "component": {
-        "type": "Stack"
-      },
-      "event": "onClick",
-      "target": "pages/about"
+      "target": "pages/ResetPasswordPage"
     }
   ],
-  "pages/about": [
+  "pages/IndexPage": [
     {
       "component": {
         "type": "Column"
       },
       "event": "onClick",
-      "target": "pages/guide"
+      "target": "pages/MovieDetailPage"
     },
     {
       "component": {
         "type": "Row"
       },
       "event": "onClick",
-      "target": "pages/illustrate"
-    }
-  ],
-  "pages/guide": [
+      "target": "pages/MovieSearchPage"
+    },
     {
       "component": {
-        "type": "Button"
+        "type": "Image"
       },
       "event": "onClick",
-      "target": "pages/Index"
+      "target": "pages/MovieUserPage"
+    }
+  ],
+  "pages/LaunchPage": [
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "setTimeout",
+      "target": "pages/IndexPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "setTimeout",
+      "target": "pages/LoginPage"
+    }
+  ],
+  "pages/LoginPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/RegisterPage"
     },
     {
       "component": {
         "type": "Text"
       },
       "event": "onClick",
-      "target": "pages/illustrate"
+      "target": "pages/ForgetPasswordPage"
     },
     {
       "component": {
-        "type": "Stepper"
+        "type": "__Common__"
       },
-      "event": "onFinish",
-      "target": "pages/Index"
+      "event": "useLogin",
+      "target": "pages/MusicIndexPage"
     }
   ],
-  "pages/help": [],
-  "pages/illustrate": [],
-  "pages/setting": []
+  "pages/MovieDetailPage": [
+    {
+      "component": {
+        "type": "Row"
+      },
+      "event": "onClick",
+      "target": "pages/MoviePlayPage"
+    }
+  ],
+  "pages/MoviePlayPage": [],
+  "pages/MovieSearchPage": [
+    {
+      "component": {
+        "type": "Column"
+      },
+      "event": "onClick",
+      "target": "pages/MovieDetailPage"
+    }
+  ],
+  "pages/MovieUserPage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/MovieLoginPage"
+    }
+  ],
+  "pages/RegisterPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/IndexPage"
+    },
+    {
+      "component": {
+        "type": "__Common__"
+      },
+      "event": "useRegister",
+      "target": "pages/IndexPage"
+    }
+  ],
+  "pages/ResetPasswordPage": [
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/IndexPage"
+    }
+  ],
+  "pages/UpdatePasswordPage": [],
+  "pages/UserPage": [
+    {
+      "component": {
+        "type": "Button"
+      },
+      "event": "onClick",
+      "target": "pages/LoginPage"
+    },
+    {
+      "component": {
+        "type": "Text"
+      },
+      "event": "onClick",
+      "target": "pages/UpdatePasswordPage"
+    }
+  ]
 }`;
 export default PTGJson;

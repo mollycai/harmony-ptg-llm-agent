@@ -50,24 +50,6 @@ Rules:
   - any back-navigation expression
 - If `component_type` or `event` still falls back due to weak evidence, keep the edge only when `target` is clearly page-like.
 
-Example (callback indirection):
-Code:
-@Builder
-itemBuilder(title: string, onItemClick?: () => void) {
-  Stack() {
-    Text(title)
-  }
-  .onClick(() => {
-    onItemClick?.()
-  })
-}
-
-build() {
-  this.itemBuilder("关注", () => {
-    Router.push(RoutePath.ContainerPage, { "containerType": "focus" })
-  })
-}
-
 Output:
 [
   {

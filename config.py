@@ -23,6 +23,18 @@ LLM_CONFIG = {
             "max_retries": 2,
         },
     },
+    "claude": {
+        "baseURL": "https://api.gptsapi.net/v1",
+        "apiKeyEnv": "CLAUDE_API_KEY",
+        "model": "wild-opus-4-6",
+        "preprocessModel": "wild-opus-4-6",
+        "chatOptions": {
+            "temperature": 0,
+            "top_p": 1,
+            "timeout": 180,
+            "max_retries": 2,
+        },
+    },
 }
 
 PROJECT_CONFIG = {
